@@ -1,0 +1,25 @@
+# Build project without gradle and java installation
+
+services:
+  gradle:
+    image: gradle:8.14.3-jdk24
+    container_name: gradle
+    working_dir: /home/gradle/app
+    volumes:
+      - .:/home/gradle/app
+      - gradle-cache:/home/gradle/.gradle #global cache
+
+  gradle-daemon:
+    image: gradle:8.14.3-jdk24
+    container_name: gradle-daemon
+    working_dir: /home/gradle/app
+    volumes:
+      - .:/home/gradle/app
+      - gradle-daemon-cache:/home/gradle/.gradle #global cache
+    stdin_open: true
+    tty: true
+    entrypoint: [ "tail", "-f", "/dev/null" ]
+
+volumes:
+  gradle-cache:
+  gradle-daemon-cache:

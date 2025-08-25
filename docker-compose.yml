@@ -1,0 +1,29 @@
+services:
+  gateway:
+    image: openjdk:24-jdk-slim
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    command: ["java", "-jar", "/app/gateway.jar"]
+    volumes:
+      - ./gateway/build/libs/:/app
+    depends_on:
+      - document-processor
+    networks:
+      - app_network
+
+  document-processor:
+    image: openjdk:24-jdk-slim
+    container_name: document-processor
+    restart: unless-stopped
+    command: ["java", "-jar", "/app/document-processor.jar"]
+    volumes:
+      - ./services/document-processor/build/libs/:/app
+    networks:
+      - app_network
+
+
+networks:
+  app_network:
+    driver: bridge
