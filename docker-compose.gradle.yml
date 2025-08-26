@@ -7,7 +7,8 @@ services:
     working_dir: /home/gradle/app
     volumes:
       - .:/home/gradle/app
-      - gradle-cache:/home/gradle/.gradle #global cache
+      - gradle-cache:/home/gradle/.gradle # global cache
+    user: "${UID:-gradle}:${GID:-gradle}" # user id and group id of the user on the host machine
 
   gradle-daemon:
     image: gradle:8.14.3-jdk24
@@ -19,6 +20,7 @@ services:
     stdin_open: true
     tty: true
     entrypoint: [ "tail", "-f", "/dev/null" ]
+    user: "${UID:-gradle}:${GID:-gradle}" # user id and group id of the user on the host machine
 
 volumes:
   gradle-cache:
