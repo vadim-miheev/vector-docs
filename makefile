@@ -19,7 +19,7 @@ build:
 	@if [ -z "$$(docker ps -q -f name=gradle-daemon)" ]; then \
 		docker compose -f docker-compose.gradle.yml up -d gradle-daemon --build; \
 	fi
-	docker exec -it gradle-daemon gradle bootJar
+	docker exec gradle-daemon gradle bootJar
 
 #Builds the project once without using gradle daemon
 build-once:
