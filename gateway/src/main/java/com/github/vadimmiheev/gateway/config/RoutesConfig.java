@@ -11,18 +11,14 @@ public class RoutesConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("speech_to_text", r -> r
-                        .path("/api/speech/**")
+                .route("search_service", r -> r
+                        .path("/api/search/**")
                         .filters(f -> f.stripPrefix(2))
-                        .uri("http://speech-to-text:8080"))
-                .route("ai_interpreter", r -> r
-                        .path("/api/ai/**")
+                        .uri("http://search-service:8080"))
+                .route("document_processor", r -> r
+                        .path("/api/docs/**")
                         .filters(f -> f.stripPrefix(2))
-                        .uri("http://ai-interpreter"))
-                .route("common_service", r -> r
-                        .path("/api/common/**")
-                        .filters(f -> f.stripPrefix(2))
-                        .uri("http://common"))
+                        .uri("http://document-processor:8080"))
                 .build();
     }
 }
