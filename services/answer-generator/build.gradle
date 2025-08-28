@@ -28,8 +28,3 @@ test {
 bootJar {
     archiveFileName = "${project.name}.jar"
 }
-
-bootRun {
-    systemProperty "app.group", group
-    systemProperty "app.version", "lol"
-}
