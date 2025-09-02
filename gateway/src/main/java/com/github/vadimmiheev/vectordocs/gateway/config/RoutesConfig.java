@@ -19,6 +19,10 @@ public class RoutesConfig {
                         .path("/api/docs/**")
                         .filters(f -> f.stripPrefix(2))
                         .uri("http://document-processor:8080"))
+                .route("storage_service", r -> r
+                        .path("/api/storage/**")
+                        .filters(f -> f.stripPrefix(2))
+                        .uri("http://storage-service:8080"))
                 .build();
     }
 }
