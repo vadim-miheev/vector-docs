@@ -1,11 +1,11 @@
-package com.github.vadimmiheev.documentprocessor;
+package com.github.vadimmiheev.vectordocs.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DocumentProcessorApplication {
+public class GatewayApplication {
     public static void main(String[] args) {
-        SpringApplication.run(DocumentProcessorApplication.class, args);
+        SpringApplication.run(GatewayApplication.class, args);
     }
 }

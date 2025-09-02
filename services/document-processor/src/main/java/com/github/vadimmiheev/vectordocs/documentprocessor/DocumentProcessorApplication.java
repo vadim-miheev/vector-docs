@@ -1,11 +1,11 @@
-package com.github.vadimmiheev.searchservice;
+package com.github.vadimmiheev.vectordocs.documentprocessor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SearchServiceApplication {
+public class DocumentProcessorApplication {
     public static void main(String[] args) {
-        SpringApplication.run(SearchServiceApplication.class, args);
+        SpringApplication.run(DocumentProcessorApplication.class, args);
     }
 }

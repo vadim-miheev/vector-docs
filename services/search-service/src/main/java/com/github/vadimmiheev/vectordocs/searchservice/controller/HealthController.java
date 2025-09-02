@@ -1,4 +1,4 @@
-package com.github.vadimmiheev.searchservice.controller;
+package com.github.vadimmiheev.vectordocs.searchservice.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
