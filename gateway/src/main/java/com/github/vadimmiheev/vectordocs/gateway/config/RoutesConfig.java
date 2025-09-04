@@ -23,6 +23,10 @@ public class RoutesConfig {
                         .path("/api/storage/**")
                         .filters(f -> f.stripPrefix(2))
                         .uri("http://storage-service:8080"))
+                .route("notification_service", r -> r
+                        .path("/api/notifications/**")
+                        .filters(f -> f.stripPrefix(2))
+                        .uri("http://notification-service:8080"))
                 .build();
     }
 }

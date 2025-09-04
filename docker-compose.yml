@@ -10,6 +10,7 @@ services:
       - ./gateway/build/libs/:/app
     depends_on:
       - document-processor
+      - notification-service
     networks:
       - app_network
 
@@ -20,6 +21,16 @@ services:
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
+    networks:
+      - app_network
+
+  notification-service:
+    image: openjdk:24-jdk-slim
+    container_name: notification-service
+    restart: unless-stopped
+    command: ["java", "-jar", "/app/notification-service.jar"]
+    volumes:
+      - ./services/notification-service/build/libs/:/app
     networks:
       - app_network
 
