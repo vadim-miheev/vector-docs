@@ -1,24 +1,29 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import { AuthProvider } from './store/AuthContext';
+import { NotificationsProvider } from './store/NotificationsContext';
+import AppRouter from './app/AppRouter';
+import NotificationToast from './components/NotificationToast';
+import { useWebSocket } from './hooks/useWebSocket';
+
+function AppShell() {
+  // Initialize WebSocket notifications when authenticated
+  useWebSocket();
+  return (
+    <>
+      <AppRouter />
+      <NotificationToast />
+    </>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <NotificationsProvider>
+        <AppShell />
+      </NotificationsProvider>
+    </AuthProvider>
   );
 }
 
