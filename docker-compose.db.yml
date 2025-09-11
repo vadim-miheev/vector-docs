@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: postgres
+    ports:
+      - "5432:${POSTGRES_PORT:-5432}"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  flyway:
+    profiles: ["db-migration"] # prevent from running on docker-compose up
+    image: flyway/flyway:11
+    container_name: flyway
+    depends_on:
+      - postgres
+    volumes:
+      - ./db-migration/flyway/sql:/flyway/sql
+    command: -url=jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB} -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD} -locations=filesystem:/flyway/sql -connectRetries=10 migrate
+
+volumes:
+  postgres_data:

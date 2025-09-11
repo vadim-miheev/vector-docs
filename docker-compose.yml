@@ -1,3 +1,6 @@
+include:
+  - docker-compose.db.yml
+
 services:
   gateway:
     image: openjdk:24-jdk-slim
@@ -11,8 +14,7 @@ services:
     depends_on:
       - document-processor
       - notification-service
-    networks:
-      - app_network
+      - storage-service
 
   document-processor:
     image: openjdk:24-jdk-slim
@@ -21,8 +23,9 @@ services:
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
-    networks:
-      - app_network
+    depends_on:
+      - kafka
+      - postgres
 
   notification-service:
     image: openjdk:24-jdk-slim
@@ -31,18 +34,37 @@ services:
     command: ["java", "-jar", "/app/notification-service.jar"]
     volumes:
       - ./services/notification-service/build/libs/:/app
-    networks:
-      - app_network
+    depends_on:
+      - kafka
+
+  storage-service:
+    image: openjdk:24-jdk-slim
+    container_name: storage-service
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+      SPRING_DATASOURCE_USER: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    command: [ "java", "-jar", "/app/storage-service.jar" ]
+    volumes:
+      - ./services/storage-service/build/libs/:/app
+    depends_on:
+      - kafka
+      - postgres
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
+    restart: unless-stopped
     ports:
       - "9092:9092"
       - "29092:29092"
@@ -54,7 +76,3 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
     depends_on:
       - zookeeper
-
-networks:
-  app_network:
-    driver: bridge
