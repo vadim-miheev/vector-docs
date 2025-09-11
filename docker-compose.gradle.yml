@@ -2,6 +2,7 @@
 
 services:
   gradle:
+    profiles: ["gradle"] # prevent from running on docker-compose up
     image: gradle:8.14.3-jdk24
     container_name: gradle
     working_dir: /home/gradle/app
@@ -11,6 +12,7 @@ services:
     user: "${UID:-gradle}:${GID:-gradle}" # changing user if provided (.gradle permission conflict fix)
 
   gradle-daemon:
+    profiles: ["gradle"] # prevent from running on docker-compose up
     image: gradle:8.14.3-jdk24
     container_name: gradle-daemon
     working_dir: /home/gradle/app
