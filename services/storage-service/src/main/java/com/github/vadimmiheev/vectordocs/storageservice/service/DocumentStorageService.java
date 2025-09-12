@@ -84,6 +84,15 @@ public class DocumentStorageService {
         return documentRepository.deleteByIdAndUserId(id, userId);
     }
 
+    public DocumentResponse getById(String userId, String id) {
+        return toResponse(getDocument(userId, id));
+    }
+
+    public Document getDocument(String userId, String id) {
+        return documentRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+    }
+
     private void validate(String userId, MultipartFile file) {
         if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("userId is required");
