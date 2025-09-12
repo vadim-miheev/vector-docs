@@ -5,6 +5,7 @@ import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class DocumentStorageService {
 
     private final DocumentRepository documentRepository;
@@ -76,6 +78,7 @@ public class DocumentStorageService {
             Path p = Paths.get(doc.getPath());
             Files.deleteIfExists(p);
         } catch (IOException e) {
+            log.error("Failed to delete file {}", doc.getPath(), e);
             return 0;
         }
         return documentRepository.deleteByIdAndUserId(id, userId);

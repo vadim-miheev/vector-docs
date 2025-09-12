@@ -16,16 +16,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        log.warn(ex.getMessage());
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidFileTypeException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidFile(InvalidFileTypeException ex) {
+        log.warn(ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Map<String, Object>> handleBadRequest(Exception ex) {
+        log.warn(ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
