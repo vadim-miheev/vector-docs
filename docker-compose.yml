@@ -41,8 +41,6 @@ services:
   storage-service:
     image: openjdk:24-jdk-slim
     container_name: storage-service
-    ports:
-      - "8081:8080"
     restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
