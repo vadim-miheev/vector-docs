@@ -47,6 +47,7 @@ services:
       SPRING_DATASOURCE_USER: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       ROOT_STORAGE_PATH: /files
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     command: [ "java", "-jar", "/app/storage-service.jar" ]
     volumes:
       - ./services/storage-service/build/libs/:/app

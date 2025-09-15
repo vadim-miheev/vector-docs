@@ -1,11 +1,14 @@
 package com.github.vadimmiheev.vectordocs.storageservice.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
 import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,9 +27,18 @@ import java.util.stream.Collectors;
 public class DocumentStorageService {
 
     private final DocumentRepository documentRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
-    public DocumentStorageService(DocumentRepository documentRepository) {
+    @Value("${app.topics.documents-uploaded}")
+    private String documentsUploadedTopic;
+
+    public DocumentStorageService(DocumentRepository documentRepository,
+                                  KafkaTemplate<String, String> kafkaTemplate,
+                                  ObjectMapper objectMapper) {
         this.documentRepository = documentRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public List<DocumentResponse> getUserDocuments(String userId) {
@@ -63,7 +75,18 @@ public class DocumentStorageService {
             doc.setCreatedAt(Instant.now());
 
             documentRepository.save(doc);
-            return toResponse(doc);
+
+            DocumentResponse response = toResponse(doc);
+            // Publish event to Kafka (non-blocking, best-effort)
+            try {
+                String payload = objectMapper.writeValueAsString(response);
+                kafkaTemplate.send(documentsUploadedTopic, doc.getId(), payload);
+                log.info("Published event to topic '{}' for document id={} userId={}", documentsUploadedTopic, doc.getId(), userId);
+            } catch (Exception ex) {
+                log.error("Failed to publish '{}' event for document id={} userId={}", documentsUploadedTopic, doc.getId(), userId, ex);
+            }
+
+            return response;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file", e);
         }
