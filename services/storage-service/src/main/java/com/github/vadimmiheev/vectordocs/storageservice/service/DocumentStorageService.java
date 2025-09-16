@@ -77,6 +77,7 @@ public class DocumentStorageService {
             documentRepository.save(doc);
 
             DocumentResponse response = toResponse(doc);
+            response.setDownloadUrl(generateDownloadUrl(doc, false)); // replace download url with an internal link
             // Publish event to Kafka (non-blocking, best-effort)
             try {
                 String payload = objectMapper.writeValueAsString(response);
@@ -86,7 +87,7 @@ public class DocumentStorageService {
                 log.error("Failed to publish '{}' event for document id={} userId={}", documentsUploadedTopic, doc.getId(), userId, ex);
             }
 
-            return response;
+            return toResponse(doc);
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file", e);
         }
@@ -146,7 +147,8 @@ public class DocumentStorageService {
                 d.getSize(),
                 d.getUserId(),
                 d.getContentType(),
-                d.getCreatedAt()
+                d.getCreatedAt(),
+                generateDownloadUrl(d, true)
         );
     }
 
@@ -158,5 +160,14 @@ public class DocumentStorageService {
             return "document";
         }
         return sanitized;
+    }
+
+    public String generateDownloadUrl(Document document, boolean publicLink) {
+        if (document == null || document.getId() == null) {
+            return null;
+        }
+        // Current service private host
+        String host = publicLink ? System.getenv("STORAGE_SERVICE_HOST") : System.getenv("INTERNAL_HOST");
+        return host + "/documents/" + document.getId() + "/download";
     }
 }
