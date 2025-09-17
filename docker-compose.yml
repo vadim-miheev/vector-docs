@@ -21,6 +21,8 @@ services:
     image: openjdk:24-jdk-slim
     container_name: document-processor
     restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
@@ -49,7 +51,7 @@ services:
       ROOT_STORAGE_PATH: /files
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       STORAGE_SERVICE_HOST: ${SITE_ROOT}/api/storage
-      INTERNAL_HOST: http://storage-service
+      INTERNAL_HOST: http://storage-service:8080
     command: [ "java", "-jar", "/app/storage-service.jar" ]
     volumes:
       - ./services/storage-service/build/libs/:/app
@@ -78,6 +80,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
 
