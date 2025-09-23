@@ -1,4 +1,4 @@
-.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration
+.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration dp-rebuild
 
 export UID := $(shell id -u)
 export GID := $(shell id -g)
@@ -39,3 +39,7 @@ down:
 
 db-migration:
 	docker compose run --rm flyway
+
+dp-rebuild: bootjar
+	docker compose up document-processor -d --build
+	docker compose restart document-processor
