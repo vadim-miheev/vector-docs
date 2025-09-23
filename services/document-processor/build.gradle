@@ -22,6 +22,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.apache.pdfbox:pdfbox:2.0.30'
+    // OCR (Tesseract via Tess4J)
+    implementation 'net.sourceforge.tess4j:tess4j:5.10.0'
 
     // Lombok for boilerplate reduction
     compileOnly 'org.projectlombok:lombok:1.18.38'
