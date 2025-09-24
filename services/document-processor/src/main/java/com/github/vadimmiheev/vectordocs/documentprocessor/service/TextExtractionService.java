@@ -86,13 +86,15 @@ public class TextExtractionService {
                 stripper.getText(document); // It is necessary to call for launch processTextPosition()
                 List<PageElement> elements = new ArrayList<>(stripper.getElements());
 
-                // Extract images
-                ImageExtractor extractor = new ImageExtractor();
-                extractor.processPage(page);
+                if (ocrEnabled) {
+                    // Extract images
+                    ImageExtractor extractor = new ImageExtractor();
+                    extractor.processPage(page);
 
-                for (ImageWithPosition img : extractor.getImages()) {
-                    String ocrResult = tesseract.doOCR(img.image);
-                    elements.add(new PageElement(ocrResult, img.x, img.y));
+                    for (ImageWithPosition img : extractor.getImages()) {
+                        String ocrResult = tesseract.doOCR(img.image);
+                        elements.add(new PageElement(ocrResult, img.x, img.y));
+                    }
                 }
 
                 // Sort by coordinates (from top to bottom, left to right)
