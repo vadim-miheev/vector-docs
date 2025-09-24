@@ -29,6 +29,9 @@ dependencies {
     // LangChain4j (OpenAI-compatible for Ollama)
     implementation 'dev.langchain4j:langchain4j-open-ai:0.34.0'
 
+    // vector hibernate support
+    implementation 'org.hibernate.orm:hibernate-vector:6.4.0.Final'
+
     // Lombok for boilerplate reduction
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
