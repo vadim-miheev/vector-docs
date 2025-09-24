@@ -13,7 +13,7 @@ public class PositionTextStripper extends PDFTextStripper {
     private final List<PageElement> elements = new ArrayList<>();
     private float lastLineY = Float.NaN;
 
-    public PositionTextStripper() throws IOException {
+    public PositionTextStripper() {
         super();
         // Important: let PDFBOX sort symbols and restore gaps
         setSortByPosition(true);
@@ -42,7 +42,7 @@ public class PositionTextStripper extends PDFTextStripper {
     }
 
     @Override
-    protected void writeLineSeparator() throws IOException {
+    protected void writeLineSeparator() {
         // Obviously add the transfer of the line as a separate element
         float y = Float.isNaN(lastLineY) ? 0f : lastLineY;
         elements.add(new PageElement("\n", 0f, y, 0f));
