@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
