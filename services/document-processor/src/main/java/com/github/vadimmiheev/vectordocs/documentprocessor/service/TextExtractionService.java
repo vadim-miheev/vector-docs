@@ -4,6 +4,7 @@ import com.github.vadimmiheev.vectordocs.documentprocessor.ocr.ImageExtractor;
 import com.github.vadimmiheev.vectordocs.documentprocessor.ocr.ImageWithPosition;
 import com.github.vadimmiheev.vectordocs.documentprocessor.ocr.PageElement;
 import com.github.vadimmiheev.vectordocs.documentprocessor.ocr.PositionTextStripper;
+import com.github.vadimmiheev.vectordocs.documentprocessor.util.TextExtractor;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
@@ -97,16 +98,15 @@ public class TextExtractionService {
                         .comparingDouble((PageElement e) -> e.y)    // from top to bottom
                         .thenComparingDouble(e -> e.x)); // from left to right
 
-                // Collect the final text
-                StringBuilder merged = new StringBuilder();
-                for (PageElement el : elements) {
-                    merged.append(el.text);
-                }
-
-                result.append(merged);
+                result.append(TextExtractor.mergeElements(elements));
             }
         }
 
         return result.toString();
+    }
+
+    private static boolean isPunctuation(char c) {
+        // Basic check for signs, before which the gap is usually not needed
+        return ",.;:!?)]}%»".indexOf(c) >= 0;
     }
 }
