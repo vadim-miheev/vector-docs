@@ -1,6 +1,7 @@
 package com.github.vadimmiheev.vectordocs.documentprocessor.ocr;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.contentstream.PDFStreamEngine;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.cos.COSBase;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Slf4j
 public class ImageExtractor extends PDFStreamEngine {
     private final List<ImageWithPosition> images = new ArrayList<>();
     private Matrix currentMatrix;
@@ -44,19 +46,22 @@ public class ImageExtractor extends PDFStreamEngine {
         else if ("Do".equals(operation)) {
             COSName objectName = (COSName) operands.getFirst();
             PDXObject xobject = getResources().getXObject(objectName);
-            if (xobject instanceof PDImageXObject) {
-                PDImageXObject image = (PDImageXObject) xobject;
+            if (xobject instanceof PDImageXObject image) {
 
-                if (currentMatrix != null) {
-                    float x = currentMatrix.getTranslateX();
-                    float y = currentMatrix.getTranslateY();
-                    // Inverted y
-                    float invertedY = pageHeight - y;
+                try {
+                    if (currentMatrix != null) {
+                        float x = currentMatrix.getTranslateX();
+                        float y = currentMatrix.getTranslateY();
+                        // Inverted y
+                        float invertedY = pageHeight - y;
 
-                    images.add(new ImageWithPosition(image.getImage(), x, invertedY));
-                } else {
-                    // fallback
-                    images.add(new ImageWithPosition(image.getImage(), 0, 0));
+                        images.add(new ImageWithPosition(image.getImage(), x, invertedY));
+                    } else {
+                        // fallback
+                        images.add(new ImageWithPosition(image.getImage(), 0, 0));
+                    }
+                } catch (IllegalArgumentException | IOException ex) {
+                    log.error("Failed to process PDF image", ex);
                 }
             }
         } else {
