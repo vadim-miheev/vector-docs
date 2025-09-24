@@ -30,16 +30,35 @@ public class EmbeddingService {
     @Value("${app.embedding.chunk-overlap:100}")
     private int chunkOverlap;
 
-    public void generateAndSaveEmbeddings(DocumentUploadedEvent event, String text) {
+    public void generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
             UUID fileUuid = event.getId();
             String userId = event.getUserId();
             Instant createdAt = Instant.now();
 
-            List<String> chunks = TextChunker.split(text, chunkSize, chunkOverlap);
+            List<Integer> pageOffsets = new ArrayList<>(); // The beginning of each page in the general text
+            StringBuilder wholeText = new StringBuilder();
+            for (String page : pages) {
+                pageOffsets.add(wholeText.length());
+                wholeText.append(page);
+            }
+
+            List<String> chunks = TextChunker.split(wholeText.toString(), chunkSize, chunkOverlap);
             if (chunks.isEmpty()) {
                 log.warn("No text chunks produced for file id={} name='{}'", event.getId(), event.getName());
                 return;
+            }
+
+            List<Integer> pageNumbers = new ArrayList<>();
+            int[] offsetsArray = pageOffsets.stream().mapToInt(i -> i).toArray();
+
+            int currentPage = 0;
+            for (String chunk : chunks) {
+                int chunkStart = wholeText.indexOf(chunk);
+                while (currentPage + 1 < offsetsArray.length && chunkStart >= offsetsArray[currentPage + 1]) {
+                    currentPage++;
+                }
+                pageNumbers.add(currentPage + 1);
             }
 
             // Convert chunks to segments for LangChain4j
@@ -59,7 +78,7 @@ public class EmbeddingService {
                         .createdAt(createdAt)
                         .chunkText(chunks.get(i))
                         .vector(vectors.get(i).vector())
-                        .pageNumber(null)
+                        .pageNumber(pageNumbers.get(i))
                         .build();
                 entities.add(entity);
             }

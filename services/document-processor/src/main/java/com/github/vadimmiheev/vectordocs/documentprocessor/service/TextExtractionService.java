@@ -9,15 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class TextExtractionService {
     @Value("${app.ocr.dpi:300}")
     private int ocrDpi;
 
-    public String extractText(byte[] data, String contentType, String fileName) throws IOException, TesseractException {
+    public ArrayList<String> extractText(byte[] data, String contentType, String fileName) throws IOException, TesseractException {
         String type = contentType != null ? contentType.toLowerCase() : null;
         String lowerName = fileName != null ? fileName.toLowerCase() : "";
 
@@ -48,25 +49,26 @@ public class TextExtractionService {
             String text = new String(data, StandardCharsets.UTF_8);
             // CRLF & CR → LF
             text = text.replace("\r\n", "\n").replace("\r", "\n");
-            return text;
+            return new ArrayList<>(Collections.singleton(text));
         }
         throw new IOException("Unsupported content type: " + contentType + " for file " + fileName);
     }
 
     /**
-     * Extracts textual and image-based content from a PDF file represented as a byte array.
-     * The method combines text extracted directly from the PDF with OCR-processed text from embedded images,
-     * assembling the results in reading order based on positional coordinates.
+     * Extracts the text from the provided PDF data, using text extraction and OCR for embedded images.
+     * This method processes each page of the PDF to extract textual content and images. It uses the
+     * OCR library (Tesseract) to analyze the images and extract any text information from them. The
+     * extracted content is sorted by spatial coordinates and then merged into strings for each page.
      *
-     * @param data the byte array representation of the PDF file
-     * @return a string containing all extracted content from the PDF, including text and OCR-processed data
+     * @param data the PDF file data as a byte array
+     * @return a list of strings, where each string represents the extracted and processed text from a single page of the PDF
      * @throws IOException if an error occurs while loading or processing the PDF file
-     * @throws TesseractException if an error occurs during OCR processing
+     * @throws TesseractException if an error occurs during the OCR process
      */
-    private String extractFromPdf(byte[] data) throws IOException, TesseractException {
-        StringBuilder result = new StringBuilder();
+    private ArrayList<String> extractFromPdf(byte[] data) throws IOException, TesseractException {
+        ArrayList<String> result = new ArrayList<>();
 
-        try (PDDocument document = PDDocument.load(new ByteArrayInputStream(data))) {
+        try (PDDocument document = Loader.loadPDF(data)) {
             ITesseract tesseract = new Tesseract();
             tesseract.setDatapath(ocrDataPath);
             tesseract.setLanguage(ocrLang);
@@ -98,15 +100,10 @@ public class TextExtractionService {
                         .comparingDouble((PageElement e) -> e.y)    // from top to bottom
                         .thenComparingDouble(e -> e.x)); // from left to right
 
-                result.append(TextExtractor.mergeElements(elements));
+                result.add(TextExtractor.mergeElements(elements));
             }
         }
 
-        return result.toString();
-    }
-
-    private static boolean isPunctuation(char c) {
-        // Basic check for signs, before which the gap is usually not needed
-        return ",.;:!?)]}%»".indexOf(c) >= 0;
+        return result;
     }
 }

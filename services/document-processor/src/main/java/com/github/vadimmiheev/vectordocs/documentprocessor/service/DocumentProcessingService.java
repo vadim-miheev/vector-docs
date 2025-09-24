@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -17,13 +19,13 @@ public class DocumentProcessingService {
     public void process(DocumentUploadedEvent event) {
         try {
             byte[] bytes = downloadService.download(event.getDownloadUrl(), event.getUserId());
-            String text = textExtractionService.extractText(bytes, event.getContentType(), event.getName());
+            ArrayList<String> pages = textExtractionService.extractText(bytes, event.getContentType(), event.getName());
             // Generate and persist embeddings
-            embeddingService.generateAndSaveEmbeddings(event, text);
+            embeddingService.generateAndSaveEmbeddings(event, pages);
             // Log result
-            String preview = text.length() > 500 ? text.substring(0, 500) + "..." : text;
+            String preview = pages.getFirst();
             log.info("Processed document id={} name='{}' size={} bytes. Extracted {} chars. Preview: {}",
-                    event.getId(), event.getName(), event.getSize(), text.length(), preview.replaceAll("\n", " "));
+                    event.getId(), event.getName(), event.getSize(), preview.length(), preview.replaceAll("\n", " "));
         } catch (Exception e) {
             log.error("Failed to process uploaded document id={} name='{}' due to: {}", event.getId(), event.getName(), e.getMessage(), e);
         }
