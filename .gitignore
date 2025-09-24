@@ -63,3 +63,6 @@ Thumbs.db
 .github
 .windsurf
 CLAUDE.md
+
+# Env
+.env
