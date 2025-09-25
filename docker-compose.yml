@@ -29,14 +29,26 @@ services:
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
-      JAVA_TOOL_OPTIONS: >
-        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      #JAVA_TOOL_OPTIONS: >
+      #  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
     depends_on:
       - kafka
       - postgres
+
+  search-service:
+    image: openjdk:24-jdk-slim
+    container_name: search-service
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    command: [ "java", "-jar", "/app/search-service.jar" ]
+    volumes:
+      - ./services/search-service/build/libs/:/app
+    depends_on:
+      - kafka
 
   notification-service:
     image: openjdk:24-jdk-slim
