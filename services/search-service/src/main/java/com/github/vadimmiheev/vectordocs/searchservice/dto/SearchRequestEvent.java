@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.HashMap;
 
 @Getter
 @Setter
@@ -13,6 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class SearchRequestEvent {
     private String query;
-    private List<String> context;
+    private HashMap<String, String> context;
     private String userId;
 }

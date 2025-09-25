@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 @RestController
 @Slf4j
@@ -32,7 +33,7 @@ public class SearchController {
     public ResponseEntity<?> submitSearch(@RequestBody SearchRequestEvent request,
                                           @RequestHeader(value = "X-User-Id") String userIdHeader) {
         if (StringUtils.hasText(userIdHeader)) {
-            request.setUserId(userIdHeader);
+            request.setUserId(userIdHeader); // User ID rewrite from header
         } else {
             log.error("Missing userId (header X-User-Id)");
             return ResponseEntity.badRequest().build();
@@ -43,7 +44,7 @@ public class SearchController {
         }
 
         if (request.getContext() == null) {
-            request.setContext(Collections.emptyList());
+            request.setContext(new HashMap<>());
         }
 
         try {
