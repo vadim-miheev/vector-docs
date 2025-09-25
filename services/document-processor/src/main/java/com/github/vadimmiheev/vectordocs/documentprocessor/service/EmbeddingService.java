@@ -30,7 +30,7 @@ public class EmbeddingService {
     @Value("${app.embedding.chunk-overlap:100}")
     private int chunkOverlap;
 
-    public void generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
+    public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
             UUID fileUuid = event.getId();
             String userId = event.getUserId();
@@ -46,7 +46,7 @@ public class EmbeddingService {
             List<String> chunks = TextChunker.split(wholeText.toString(), chunkSize, chunkOverlap);
             if (chunks.isEmpty()) {
                 log.warn("No text chunks produced for file id={} name='{}'", event.getId(), event.getName());
-                return;
+                return 0;
             }
 
             List<Integer> pageNumbers = new ArrayList<>();
@@ -85,8 +85,10 @@ public class EmbeddingService {
 
             embeddingRepository.saveAll(entities);
             log.info("Saved {} embeddings for document id={} userId={}", entities.size(), fileUuid, userId);
+            return entities.size();
         } catch (Exception e) {
             log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
         }
+        return 0;
     }
 }
