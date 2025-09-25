@@ -7,11 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface EmbeddingRepository extends JpaRepository<Embedding, Long> {
-
-    List<Embedding> findByFileUuid(UUID fileUuid);
 
     @Query(
     value = "SELECT * FROM embeddings e " +
