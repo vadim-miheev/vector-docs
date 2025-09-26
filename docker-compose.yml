@@ -55,6 +55,23 @@ services:
       - kafka
       - postgres
 
+  answer-generator:
+    image: openjdk:24-jdk-slim
+    container_name: answer-generator
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_CHAT_BASE_URL: ${EMBEDDING_BASE_URL}
+      APP_CHAT_MODEL_NAME: ${CHAT_MODEL_NAME:-llama3.1}
+      APP_CHAT_API_KEY: ${OPENAI_API_KEY:-dummy}
+      APP_NOTIFICATION_STREAM_URL: http://notification-service:8080/answers/stream
+    command: [ "java", "-jar", "/app/answer-generator.jar" ]
+    volumes:
+      - ./services/answer-generator/build/libs/:/app
+    depends_on:
+      - kafka
+      - notification-service
+
   notification-service:
     image: openjdk:24-jdk-slim
     container_name: notification-service
