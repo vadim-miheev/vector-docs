@@ -53,6 +53,7 @@ services:
       - ./services/search-service/build/libs/:/app
     depends_on:
       - kafka
+      - postgres
 
   notification-service:
     image: openjdk:24-jdk-slim

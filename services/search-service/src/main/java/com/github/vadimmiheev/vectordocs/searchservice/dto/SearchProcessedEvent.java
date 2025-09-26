@@ -19,7 +19,7 @@ public class SearchProcessedEvent {
     private String query;
     private String userId;
     private Map<String, String> context;
-    private List<Hit> results;
+    private List<Hit> embeddings;
 
     @Getter
     @Setter

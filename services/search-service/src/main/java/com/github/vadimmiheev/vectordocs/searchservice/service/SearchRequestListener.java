@@ -61,7 +61,7 @@ public class SearchRequestListener {
             List<Embedding> hits = embeddingRepository.findTopSimilar(userId, pgVectorString, PageRequest.of(0, topK));
 
             // 3) Map to processed event
-            List<SearchProcessedEvent.Hit> results = hits.stream()
+            List<SearchProcessedEvent.Hit> embeddings = hits.stream()
                     .map(e -> SearchProcessedEvent.Hit.builder()
                             .fileUuid(e.getFileUuid())
                             .pageNumber(e.getPageNumber())
@@ -73,12 +73,12 @@ public class SearchRequestListener {
                     .query(query)
                     .userId(userId)
                     .context(context)
-                    .results(results)
+                    .embeddings(embeddings)
                     .build();
 
             String payload = objectMapper.writeValueAsString(processed);
             kafkaTemplate.send(processedTopic, userId, payload);
-            log.info("Published search.processed for userId={}, results={} to topic {}", userId, results.size(), processedTopic);
+            log.info("Published search.processed for userId={}, embeddings={} to topic {}", userId, embeddings.size(), processedTopic);
         } catch (Exception e) {
             log.error("Failed to process search.request message: {}", message, e);
         }
