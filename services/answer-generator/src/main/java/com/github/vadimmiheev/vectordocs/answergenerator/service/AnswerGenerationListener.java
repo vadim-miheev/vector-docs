@@ -43,7 +43,8 @@ public class AnswerGenerationListener {
             "Answer format:",
             "First, provide a concise and accurate answer to the user’s question.",
             "Then, list the sources in the format:",
-            "Document: <fileUuid>, page <pageNumber>"
+            "Document: <fileUuid>, page <pageNumber>",
+            "Provide as many statements as possible"
     );
 
     @KafkaListener(topics = "${app.topics.search-processed:search.processed}", groupId = "${spring.kafka.consumer.group-id:answer-generator}")
@@ -73,25 +74,25 @@ public class AnswerGenerationListener {
             notificationClient.streamAnswer(userId, sink.asFlux());
 
             streamingChatModel.generate(
-                    buildMessages(query, context, embeddings),
-                    new StreamingResponseHandler<>() {
-                        @Override
-                        public void onNext(String token) {
-                            sink.tryEmitNext(token);
-                        }
-
-                        @Override
-                        public void onComplete(Response<AiMessage> response) {
-                            sink.tryEmitComplete();
-                            log.info("Completed streaming answer for userId={}", userId);
-                        }
-
-                        @Override
-                        public void onError(Throwable error) {
-                            log.error("Error during LLM streaming for userId={}", userId, error);
-                            sink.tryEmitError(error);
-                        }
+                buildMessages(query, context, embeddings),
+                new StreamingResponseHandler<>() {
+                    @Override
+                    public void onNext(String token) {
+                        sink.tryEmitNext(token);
                     }
+
+                    @Override
+                    public void onComplete(Response<AiMessage> response) {
+                        sink.tryEmitComplete();
+                        log.info("Completed streaming answer for userId={}", userId);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        log.error("Error during LLM streaming for userId={}", userId, error);
+                        sink.tryEmitError(error);
+                    }
+                }
             );
 
         } catch (Exception e) {
