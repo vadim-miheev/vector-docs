@@ -1,20 +1,25 @@
 package com.github.vadimmiheev.vectordocs.notificationservice.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 @Controller
 @Slf4j
 public class AnswerStreamController {
 
     @MessageMapping("search.result")
-    public Mono<Void> searchResultsHandler(Flux<String> tokens) {
+    public Flux<Void> searchResultsHandler(Flux<String> tokens, @Header(name = "metadata", required = false) Map<String, Object> metadata)
+    {
+        log.info("Received JSON metadata: {}", metadata);
         return tokens
                 .doOnNext(System.out::println) //TODO replace with UI communication
                 .doOnComplete(System.out::println)
-                .then();
+                .then()
+                .flux();
     }
 }
