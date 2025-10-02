@@ -15,7 +15,7 @@ public class AnswerStreamController {
     @MessageMapping("search.result")
     public Flux<Void> searchResultsHandler(Flux<String> tokens, @Header(name = "metadata", required = false) Map<String, Object> metadata)
     {
-        log.info("Received JSON metadata: {}", metadata);
+        log.info("User ID: {}", metadata.get("userId"));
         return tokens
                 .doOnNext(System.out::println) //TODO replace with UI communication
                 .doOnComplete(System.out::println)
