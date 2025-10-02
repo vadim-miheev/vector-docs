@@ -8,6 +8,10 @@ export function NotificationsProvider({ children }) {
   const addMessage = useCallback((msg) => {
     const id = Date.now() + Math.random();
     setMessages((prev) => [...prev, { id, text: String(msg) }]);
+    // Automatic closure after 10 seconds
+    setTimeout(() => {
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+    }, 5000);
     return id;
   }, []);
 

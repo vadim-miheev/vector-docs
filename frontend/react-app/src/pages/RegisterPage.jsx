@@ -24,8 +24,10 @@ export default function RegisterPage() {
       return;
     }
     try {
-      await register(emailTrimmed, passwordTrimmed);
-      navigate('/documents');
+      const result = await register(emailTrimmed, passwordTrimmed);
+        if (result !== null) {
+            navigate('/documents');
+        }
     } catch (e) {
       setError(e.message || 'Registration failed');
     }

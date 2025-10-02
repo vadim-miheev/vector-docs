@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from '../store/AuthContext';
 import { authService } from '../services/authService';
+import { useAuth } from '../hooks/useAuth';
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const { setUser } = useAuthContext();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -25,9 +27,11 @@ export default function LoginPage() {
       return;
     }
     try {
-      const u = await authService.login({ email: emailTrimmed, password: passwordTrimmed });
+      const u = await login(emailTrimmed, passwordTrimmed );
       setUser(u);
-      navigate('/documents');
+      if (u !== null) {
+        navigate('/documents');
+      }
     } catch (e) {
       setError(e.message || 'Login failed');
     }
