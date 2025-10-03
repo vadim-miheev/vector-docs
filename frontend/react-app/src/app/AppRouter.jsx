@@ -5,6 +5,7 @@ import RegisterPage from '../pages/RegisterPage';
 import DocumentsPage from '../pages/DocumentsPage';
 import SearchPage from '../pages/SearchPage';
 import { useAuthContext } from '../store/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuthContext();
@@ -15,14 +16,17 @@ function RequireAuth({ children }) {
 }
 
 export default function AppRouter() {
-  const { isAuthenticated, setUser } = useAuthContext();
+  const { isAuthenticated } = useAuthContext();
+  const { logout } = useAuth();
   return (
     <BrowserRouter>
       <nav style={{ display: 'flex', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>
-        <Link to="/documents">Documents</Link>
-        <Link to="/search">AI Search</Link>
         {isAuthenticated ? (
-          <Link to="/login" onClick={() => setUser(null)}>Log out</Link>
+          <>
+            <Link to="/documents">Documents</Link>
+            <Link to="/search">AI Search</Link>
+            <Link to="/login" onClick={() => logout()}>Log out</Link>
+          </>
         ) : (
           <>
             <Link to="/login">Log in</Link>
