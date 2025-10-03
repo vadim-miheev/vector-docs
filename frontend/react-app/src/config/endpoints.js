@@ -5,6 +5,6 @@ export const WS_NOTIFICATIONS_URL = process.env.REACT_APP_WS_URL || 'ws://localh
 export const ENDPOINTS = {
   login: `${API_BASE_URL}/auth/login`,
   register: `${API_BASE_URL}/auth/register`,
-  documents: `${API_BASE_URL}/documents`,
-  search: `${API_BASE_URL}/search`,
+  documents: `${API_BASE_URL}/api/storage/documents`,
+  search: `${API_BASE_URL}/api/search`,
 };
