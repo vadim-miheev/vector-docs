@@ -1,4 +1,4 @@
-.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration dp-rebuild search-rebuild answer-rebuild notif-rebuild
+.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration dp-rebuild search-rebuild answer-rebuild notif-rebuild gateway-rebuild
 
 export UID := $(shell id -u)
 export GID := $(shell id -g)
@@ -55,3 +55,7 @@ answer-rebuild: bootjar
 notif-rebuild: bootjar
 	docker compose up notification-service -d --build
 	docker compose restart notification-service
+
+gateway-rebuild: bootjar
+	docker compose up gateway -d --build
+	docker compose restart gateway
