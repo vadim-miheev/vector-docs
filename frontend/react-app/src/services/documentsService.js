@@ -1,56 +1,17 @@
-import { apiClient, ENDPOINTS } from './apiClient';
-
-function localKey(userId) {
-  return `vd_docs_${userId}`;
-}
-
-function loadLocal(userId) {
-  try {
-    const raw = localStorage.getItem(localKey(userId));
-    return raw ? JSON.parse(raw) : [];
-  } catch (_) {
-    return [];
-  }
-}
-
-function saveLocal(userId, list) {
-  try {
-    localStorage.setItem(localKey(userId), JSON.stringify(list));
-  } catch (_) {}
-}
+import {apiClient, ENDPOINTS} from './apiClient';
 
 export const documentsService = {
-  async list(userId) {
-    try {
+  async list() {
       const data = await apiClient.get(ENDPOINTS.documents);
       return Array.isArray(data) ? data : [];
-    } catch (e) {
-      return loadLocal(userId);
-    }
   },
-  async upload(userId, file) {
-    try {
+  async upload(file) {
       const form = new FormData();
       form.append('file', file);
-      const data = await apiClient.postForm(ENDPOINTS.documents, form);
-      return data;
-    } catch (e) {
-      const newItem = { id: Date.now().toString(), name: file.name, size: file.size };
-      const list = loadLocal(userId);
-      const updated = [newItem, ...list];
-      saveLocal(userId, updated);
-      return newItem;
-    }
+      return await apiClient.postForm(ENDPOINTS.documents, form);
   },
-  async remove(userId, id) {
-    try {
+  async remove(id) {
       await apiClient.del(`${ENDPOINTS.documents}/${encodeURIComponent(id)}`);
       return true;
-    } catch (e) {
-      const list = loadLocal(userId);
-      const updated = list.filter((x) => x.id !== id);
-      saveLocal(userId, updated);
-      return true;
-    }
   },
 };

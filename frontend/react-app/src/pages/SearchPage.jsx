@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import { searchService } from '../services/searchService';
+import { useAuth } from '../hooks/useAuth';
 
 export default function SearchPage() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { logout } = useAuth();
 
   async function onSearch(query) {
     setLoading(true);
@@ -14,6 +16,9 @@ export default function SearchPage() {
       const res = await searchService.search(query);
       setResults(res);
     } catch (e) {
+      if (e.message === 'Unauthorized') {
+        logout()
+      }
       setError(e.message || 'Search failed');
     } finally {
       setLoading(false);
