@@ -60,8 +60,8 @@ public class ImageExtractor extends PDFStreamEngine {
                         // fallback
                         images.add(new ImageWithPosition(image.getImage(), 0, 0));
                     }
-                } catch (IllegalArgumentException | IOException ex) {
-                    log.error("Failed to process PDF image", ex);
+                } catch (IllegalArgumentException ex) {
+                    log.warn("Failed to process PDF image. {}", ex.getMessage());
                 }
             }
         } else {
