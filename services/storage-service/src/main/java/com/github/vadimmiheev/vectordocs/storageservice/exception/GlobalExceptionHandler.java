@@ -32,6 +32,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(FileNotReadyException.class)
+    public ResponseEntity<Map<String, Object>> handleFileNotReady(FileNotReadyException ex) {
+        log.warn(ex.getMessage());
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Unexpected error occurred", ex);

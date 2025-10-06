@@ -4,6 +4,7 @@ import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
 import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
 import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentDeletedEvent;
 import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentUploadedEvent;
+import com.github.vadimmiheev.vectordocs.storageservice.exception.FileNotReadyException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
@@ -88,7 +89,7 @@ public class DocumentStorageService {
 
         // Waiting for processing for the correct removal of embeddings
         if (!doc.isProcessed()) {
-            throw new IllegalStateException("The file cannot be deleted because it is still being processed");
+            throw new FileNotReadyException("The file cannot be deleted because it is still being processed");
         }
 
         // Delete a file if exists
