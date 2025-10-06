@@ -91,4 +91,13 @@ public class EmbeddingService {
         }
         return 0;
     }
+
+    public void deleteEmbeddingsByDocumentId(UUID documentId) {
+        try {
+            embeddingRepository.deleteByFileUuid(documentId);
+            log.info("Deleted embeddings for document id={}", documentId);
+        } catch (Exception e) {
+            log.error("Failed to delete embeddings for document id={} due to: {}", documentId, e.getMessage(), e);
+        }
+    }
 }
