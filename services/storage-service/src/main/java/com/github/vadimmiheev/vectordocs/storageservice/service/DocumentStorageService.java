@@ -85,6 +85,12 @@ public class DocumentStorageService {
     public long delete(String userId, String id) {
         Document doc = documentRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+
+        // Waiting for processing for the correct removal of embeddings
+        if (!doc.isProcessed()) {
+            throw new IllegalStateException("The file cannot be deleted because it is still being processed");
+        }
+
         // Delete a file if exists
         try {
             Path p = Paths.get(doc.getPath());
