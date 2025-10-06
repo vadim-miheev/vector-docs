@@ -1,4 +1,4 @@
-.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration dp-rebuild search-rebuild answer-rebuild notif-rebuild gateway-rebuild
+.PHONY: up rebuild restart restart-hard bootjar bootjar-once gradle-clean down db-migration dp-rebuild storage-rebuild search-rebuild answer-rebuild notif-rebuild gateway-rebuild
 
 export UID := $(shell id -u)
 export GID := $(shell id -g)
@@ -43,6 +43,10 @@ db-migration:
 dp-rebuild: bootjar
 	docker compose up document-processor -d --build
 	docker compose restart document-processor
+
+storage-rebuild: bootjar
+	docker compose up storage-service -d --build
+	docker compose restart storage-service
 
 search-rebuild: bootjar
 	docker compose up search-service -d --build
