@@ -1,14 +1,14 @@
 package com.github.vadimmiheev.vectordocs.storageservice.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
 import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
+import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentDeletedEvent;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,22 +24,11 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class DocumentStorageService {
 
     private final DocumentRepository documentRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
-
-    @Value("${app.topics.documents-uploaded}")
-    private String documentsUploadedTopic;
-
-    public DocumentStorageService(DocumentRepository documentRepository,
-                                  KafkaTemplate<String, String> kafkaTemplate,
-                                  ObjectMapper objectMapper) {
-        this.documentRepository = documentRepository;
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-    }
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<DocumentResponse> getUserDocuments(String userId) {
         return documentRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
@@ -78,13 +67,11 @@ public class DocumentStorageService {
 
             DocumentResponse response = toResponse(doc);
             response.setDownloadUrl(generateDownloadUrl(doc, false)); // replace download url with an internal link
-            // Publish event to Kafka (non-blocking, best-effort)
+            // Publish domain event to be handled after transaction commit
             try {
-                String payload = objectMapper.writeValueAsString(response);
-                kafkaTemplate.send(documentsUploadedTopic, doc.getId(), payload);
-                log.info("Published event to topic '{}' for document id={} userId={}", documentsUploadedTopic, doc.getId(), userId);
+                eventPublisher.publishEvent(response);
             } catch (Exception ex) {
-                log.error("Failed to publish '{}' event for document id={} userId={}", documentsUploadedTopic, doc.getId(), userId, ex);
+                log.error("Failed to prepare '{}' event for document id={} userId={}", "documents-uploaded", doc.getId(), userId, ex);
             }
 
             return toResponse(doc);
@@ -105,7 +92,12 @@ public class DocumentStorageService {
             log.error("Failed to delete file {}", doc.getPath(), e);
             return 0;
         }
-        return documentRepository.deleteByIdAndUserId(id, userId);
+        long deleted = documentRepository.deleteByIdAndUserId(id, userId);
+        if (deleted > 0) {
+            // Publish domain event to be handled after transaction commit
+            eventPublisher.publishEvent(new DocumentDeletedEvent(doc.getId(), userId, Instant.now()));
+        }
+        return deleted;
     }
 
     public DocumentResponse getById(String userId, String id) {
