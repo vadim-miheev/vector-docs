@@ -2,6 +2,7 @@ package com.github.vadimmiheev.vectordocs.storageservice.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -11,6 +12,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DocumentUploadedEventListener {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -19,13 +21,9 @@ public class DocumentUploadedEventListener {
     @Value("${app.topics.documents-uploaded:documents.uploaded}")
     private String documentsUploadedTopic;
 
-    public DocumentUploadedEventListener(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-    }
-
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onDocumentUploaded(DocumentResponse document) {
+    public void onDocumentUploaded(DocumentUploadedEvent event) {
+        DocumentResponse document = event.document();
         try {
             kafkaTemplate.send(documentsUploadedTopic, document.getId(), objectMapper.writeValueAsString(document));
             log.info("Published event to topic '{}' for document upload id={} userId={}", documentsUploadedTopic, document.getId(), document.getUserId());

@@ -1,6 +1,7 @@
 package com.github.vadimmiheev.vectordocs.storageservice.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -10,6 +11,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DocumentDeletedEventListener {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -17,11 +19,6 @@ public class DocumentDeletedEventListener {
 
     @Value("${app.topics.documents-deleted:documents.deleted}")
     private String documentsDeletedTopic;
-
-    public DocumentDeletedEventListener(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-    }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDocumentDeleted(DocumentDeletedEvent event) {

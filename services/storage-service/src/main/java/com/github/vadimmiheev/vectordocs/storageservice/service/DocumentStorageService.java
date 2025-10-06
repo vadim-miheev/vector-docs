@@ -3,6 +3,7 @@ package com.github.vadimmiheev.vectordocs.storageservice.service;
 import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
 import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
 import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentDeletedEvent;
+import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentUploadedEvent;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
@@ -69,7 +70,7 @@ public class DocumentStorageService {
             response.setDownloadUrl(generateDownloadUrl(doc, false)); // replace download url with an internal link
             // Publish domain event to be handled after transaction commit
             try {
-                eventPublisher.publishEvent(response);
+                eventPublisher.publishEvent(new DocumentUploadedEvent(response));
             } catch (Exception ex) {
                 log.error("Failed to prepare '{}' event for document id={} userId={}", "documents-uploaded", doc.getId(), userId, ex);
             }
@@ -95,7 +96,7 @@ public class DocumentStorageService {
         long deleted = documentRepository.deleteByIdAndUserId(id, userId);
         if (deleted > 0) {
             // Publish domain event to be handled after transaction commit
-            eventPublisher.publishEvent(new DocumentDeletedEvent(doc.getId(), userId, Instant.now()));
+            eventPublisher.publishEvent(new DocumentDeletedEvent(doc.getId(), userId));
         }
         return deleted;
     }
