@@ -17,4 +17,5 @@ public class DocumentResponse {
     private String contentType;
     private Instant createdAt;
     private String downloadUrl;
+    private boolean processed;
 }

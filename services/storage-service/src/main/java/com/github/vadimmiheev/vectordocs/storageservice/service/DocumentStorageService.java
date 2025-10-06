@@ -141,7 +141,8 @@ public class DocumentStorageService {
                 d.getUserId(),
                 d.getContentType(),
                 d.getCreatedAt(),
-                generateDownloadUrl(d, true)
+                generateDownloadUrl(d, true),
+                d.isProcessed()
         );
     }
 
