@@ -17,6 +17,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Component
 @AllArgsConstructor
@@ -45,6 +46,12 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         }
 
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
+        // Load token from cookie during WebSocket handshake
+        if (path.startsWith("/api/ws") && request.getCookies().containsKey("vd_token")) {
+            authHeader = "Bearer " + Objects.requireNonNull(request.getCookies().getFirst("vd_token")).getValue();
+        }
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthorized(exchange, "Missing or invalid Authorization header");
         }
