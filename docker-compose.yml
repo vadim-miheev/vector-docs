@@ -14,6 +14,7 @@ services:
       SPRING_DATASOURCE_USER: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      UI_HOST: ${UI_HOST:-http://localhost:3000}
     command: ["java", "-jar", "/app/gateway.jar"]
     volumes:
       - ./gateway/build/libs/:/app
@@ -81,6 +82,8 @@ services:
     image: openjdk:24-jdk-slim
     container_name: notification-service
     restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     command: ["java", "-jar", "/app/notification-service.jar"]
     volumes:
       - ./services/notification-service/build/libs/:/app
