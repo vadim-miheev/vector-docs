@@ -1,10 +1,5 @@
 import { ENDPOINTS } from '../config/endpoints';
-
-function getTokenFromCookie() {
-  if (typeof document === 'undefined') return null;
-  const m = document.cookie.match(/(?:^|;\s*)vd_token=([^;]+)/);
-  return m ? decodeURIComponent(m[1]) : null;
-}
+import {getTokenFromCookie} from "./authService";
 
 async function request(url, { method = 'GET', headers = {}, body, isForm = false } = {}) {
   const opts = { method, headers: { ...headers }, body: undefined };

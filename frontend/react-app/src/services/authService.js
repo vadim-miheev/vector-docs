@@ -1,5 +1,11 @@
 import {apiClient, ENDPOINTS} from './apiClient';
 
+export function getTokenFromCookie() {
+    if (typeof document === 'undefined') return null;
+    const m = document.cookie.match(/(?:^|;\s*)vd_token=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+}
+
 function setTokenCookie(token) {
   if (!token) return;
   try {
