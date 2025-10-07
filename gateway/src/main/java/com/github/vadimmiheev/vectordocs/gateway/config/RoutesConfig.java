@@ -1,5 +1,6 @@
 package com.github.vadimmiheev.vectordocs.gateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,9 @@ import java.util.List;
 
 @Configuration
 public class RoutesConfig {
+
+    @Value("${app.ui.host}")
+    private String uiHost;
 
     // TODO Only for Dev
     @Bean
@@ -44,9 +48,12 @@ public class RoutesConfig {
                         .filters(f -> f.stripPrefix(2))
                         .uri("http://storage-service:8080"))
                 .route("notification_service", r -> r
-                        .path("/api/notifications/**")
+                        .path("/api/ws/notifications/**")
                         .filters(f -> f.stripPrefix(2))
-                        .uri("http://notification-service:8080"))
+                        .uri("ws://notification-service:8080"))
+                .route("ui", r -> r
+                        .path("/**")
+                        .uri(uiHost))
                 .build();
     }
 }
