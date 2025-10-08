@@ -32,6 +32,21 @@ export function useDocuments() {
     refresh();
   }, [refresh]);
 
+  // Listen for the global update event (emitted by WebSocket handlers)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e) => {
+        setDocs((prev) => prev.map(d => {
+            if (d?.id === e?.detail?.id) {
+                d.processed = true;
+            }
+            return d;
+        }));
+    };
+    window.addEventListener('documents:update', handler);
+    return () => window.removeEventListener('documents:refresh', handler);
+  }, [setDocs]);
+
   const upload = useCallback(async (file) => {
     const created = await documentsService.upload(file);
     setDocs((prev) => [created, ...prev]);
