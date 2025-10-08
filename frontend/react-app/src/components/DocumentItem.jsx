@@ -1,4 +1,5 @@
 import React from 'react';
+import DownloadLink from "./DownloadLink";
 
 function formatFileSize(bytes) {
     const n = Number(bytes);
@@ -20,6 +21,18 @@ function formatFileSize(bytes) {
 }
 
 export default function DocumentItem({doc, onDelete}) {
+    const isProcessing = doc?.processed === false;
+    const deleteDisabled = isProcessing;
+    const badgeStyle = {
+        marginLeft: 8,
+        fontSize: 12,
+        color: '#666',
+        border: '1px solid #ddd',
+        borderRadius: 4,
+        padding: '2px 6px',
+        backgroundColor: '#f8f8f8'
+    };
+
     return (
         <div style={{
             display: 'flex',
@@ -28,10 +41,31 @@ export default function DocumentItem({doc, onDelete}) {
             borderBottom: '1px solid #eee'
         }}>
             <div>
-                <div style={{fontWeight: 500}}>{doc.name}</div>
+                <div style={{fontWeight: 500, display: 'flex', alignItems: 'center'}}>
+                    <span>{doc.name}</span>
+                    {isProcessing && <span style={badgeStyle}>in progress</span>}
+                </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
             </div>
-            <button onClick={() => onDelete?.(doc.id)} style={{color: '#b00'}}>Delete</button>
+            <div style={{display: 'flex', gap: 8}}>
+                <DownloadLink fileId={doc.id} fileName={doc.name} open={true}>
+                    Open
+                </DownloadLink>
+                <DownloadLink fileId={doc.id} fileName={doc.name}>
+                    Download
+                </DownloadLink>
+                <button
+                    onClick={() => onDelete?.(doc.id)}
+                    disabled={deleteDisabled}
+                    style={{
+                        color: deleteDisabled ? '#aaa' : '#b00',
+                        cursor: deleteDisabled ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    Delete
+                </button>
+            </div>
+
         </div>
     );
 }
