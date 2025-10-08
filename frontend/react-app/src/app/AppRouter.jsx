@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import {BrowserRouter, Routes, Route, Link, Navigate, NavLink} from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import DocumentsPage from '../pages/DocumentsPage';
@@ -20,17 +20,38 @@ export default function AppRouter() {
   const { logout } = useAuth();
   return (
     <BrowserRouter>
+      <div className="container">
       <nav style={{ display: 'flex', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>
         {isAuthenticated ? (
           <>
-            <Link to="/documents">Documents</Link>
-            <Link to="/search">AI Search</Link>
-            <Link to="/login" onClick={() => logout()}>Log out</Link>
+            <NavLink
+                to="/documents"
+                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+                Documents
+            </NavLink>
+            <NavLink
+                to="/search"
+                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+                Search
+            </NavLink>
+            <Link className={"nav-link"} to="/login" onClick={() => logout()}>Log out</Link>
           </>
         ) : (
           <>
-            <Link to="/login">Log in</Link>
-            <Link to="/register">Register</Link>
+            <NavLink
+                to="/login"
+                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+                Log in
+            </NavLink>
+            <NavLink
+                to="/register"
+                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+            >
+                Register
+            </NavLink>
           </>
         )}
       </nav>
@@ -41,6 +62,7 @@ export default function AppRouter() {
         <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/documents' : '/login'} replace />} />
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }
