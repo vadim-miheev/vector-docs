@@ -1,9 +1,6 @@
 package com.github.vadimmiheev.vectordocs.notificationservice.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.HashMap;
-
 import com.github.vadimmiheev.vectordocs.notificationservice.ws.NotificationSessionRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
