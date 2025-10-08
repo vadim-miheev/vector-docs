@@ -38,9 +38,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
       <h2>Log in</h2>
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 320 }}>
+      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 320, width: '100%' }}>
         <input placeholder="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <input placeholder="Password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         <button type="submit">Log in</button>
