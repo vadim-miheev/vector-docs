@@ -27,7 +27,7 @@ export default function SearchPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <h2>AI Search</h2>
+      <h2>Search</h2>
       <SearchBar onSearch={onSearch} />
       {loading && <div>Searching...</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
