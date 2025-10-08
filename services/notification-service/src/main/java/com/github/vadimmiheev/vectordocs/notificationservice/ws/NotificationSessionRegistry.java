@@ -20,7 +20,7 @@ public class NotificationSessionRegistry {
     private final ConcurrentHashMap<String, Set<WebSocketSession>> sessionsByUser = new ConcurrentHashMap<>();
 
     public void register(String userId, WebSocketSession session) {
-        sessionsByUser.compute(userId, (k, set) -> {
+        sessionsByUser.compute(userId, (_, set) -> {
             if (set == null) set = Collections.newSetFromMap(new ConcurrentHashMap<>());
             set.add(session);
             return set;
