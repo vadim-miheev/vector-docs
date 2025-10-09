@@ -17,9 +17,9 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,7 +45,7 @@ public class SearchRequestListener {
             SearchRequestEvent request = objectMapper.readValue(message, SearchRequestEvent.class);
             String userId = request.getUserId();
             String query = request.getQuery();
-            Map<String, String> context = request.getContext();
+            ArrayList<SearchRequestEvent.SearchContextItem> context = request.getContext();
 
             if (!StringUtils.hasText(userId) || !StringUtils.hasText(query)) {
                 log.warn("Skip processing: missing userId or query. key={}, userId={}, queryPresent={}", key, userId, StringUtils.hasText(query));

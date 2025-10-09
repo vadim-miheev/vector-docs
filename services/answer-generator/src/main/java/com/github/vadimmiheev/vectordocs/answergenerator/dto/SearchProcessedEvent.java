@@ -1,13 +1,8 @@
 package com.github.vadimmiheev.vectordocs.answergenerator.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -18,7 +13,7 @@ import java.util.UUID;
 public class SearchProcessedEvent {
     private String query;
     private String userId;
-    private Map<String, String> context;
+    private List<SearchContextItem> context;
     private List<Hit> embeddings;
 
     @Getter
@@ -30,5 +25,13 @@ public class SearchProcessedEvent {
         private UUID fileUuid;
         private Integer pageNumber;
         private String chunkText;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class SearchContextItem {
+        private String role;
+        private String  message;
     }
 }

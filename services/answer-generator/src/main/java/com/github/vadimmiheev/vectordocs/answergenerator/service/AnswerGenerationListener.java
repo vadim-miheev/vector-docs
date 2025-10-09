@@ -54,7 +54,7 @@ public class AnswerGenerationListener {
             SearchProcessedEvent event = objectMapper.readValue(message, SearchProcessedEvent.class);
             String userId = event.getUserId();
             String query = event.getQuery();
-            Map<String, String> context = event.getContext();
+            List<SearchProcessedEvent.SearchContextItem> context = event.getContext();
             List<SearchProcessedEvent.Hit> embeddings = event.getEmbeddings();
 
             if (!StringUtils.hasText(userId) || !StringUtils.hasText(query)) {
@@ -100,18 +100,18 @@ public class AnswerGenerationListener {
         }
     }
 
-    private List<ChatMessage> buildMessages(String query, Map<String, String> context, List<SearchProcessedEvent.Hit> embeddings) {
+    private List<ChatMessage> buildMessages(String query, List<SearchProcessedEvent.SearchContextItem> context, List<SearchProcessedEvent.Hit> embeddings) {
         List<ChatMessage> messages = new ArrayList<>();
 
         messages.add(SystemMessage.from(SYSTEM_PROMPT));
 
         // provide chat history
         if (context != null && !context.isEmpty()) {
-            for (Map.Entry<String, String> e : context.entrySet()) {
-                if (e.getKey().equals("agent")) {
-                    messages.add(AiMessage.from(e.getValue()));
-                } else if (e.getKey().equals("user")) {
-                    messages.add(UserMessage.from(e.getValue()));
+            for (SearchProcessedEvent.SearchContextItem item : context) {
+                if (item.getRole().equals("agent")) {
+                    messages.add(AiMessage.from(item.getMessage()));
+                } else if (item.getRole().equals("user")) {
+                    messages.add(UserMessage.from(item.getMessage()));
                 }
             }
         }

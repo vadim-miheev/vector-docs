@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
 @RestController
 @Slf4j
@@ -44,7 +44,7 @@ public class SearchController {
         }
 
         if (request.getContext() == null) {
-            request.setContext(new HashMap<>());
+            request.setContext(new ArrayList<>());
         }
 
         try {
