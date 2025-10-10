@@ -34,15 +34,29 @@ export default function RegisterPage() {
   }
 
   return (
-      <div style={{ padding: 16, display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <h2>Register</h2>
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 320, width: '100%' }}>
-        <input placeholder="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input placeholder="Password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit">Create account</button>
+      <div className={"p-4 flex flex-col items-center mt-[15%]"}>
+      <h2 className={"text-4xl font-bold mb-8"}>Register</h2>
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 max-w-[320px] w-full mb-4">
+        <input
+          className={"border border-black rounded-md px-2 py-1"}
+          placeholder="Email"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          className={"border border-black rounded-md px-2 py-1"}
+          placeholder="Password"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button className={"border border-black rounded-md py-1 bg-gray-100"} type="submit">Create account</button>
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </form>
-      <p>Already have an account? <Link to="/login">Log in</Link></p>
+      <p>Already have an account? <Link className={"underline"} to="/login">Log in</Link></p>
     </div>
   );
 }

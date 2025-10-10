@@ -22,14 +22,14 @@ export default function UploadForm({ onUpload }) {
   };
 
   return (
-    <form onSubmit={submit} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <form onSubmit={submit} className={"flex gap-4 items-center"} >
       <input
         ref={inputRef}
         type="file"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
-      <button type="submit">Upload</button>
-      {error && <span style={{ color: 'red' }}>{error}</span>}
+      <button className={"border border-black rounded-sm py-[2px] px-3 bg-gray-100"} type="submit">Upload</button>
+      {error && <span className={"text-red-600"}>{error}</span>}
     </form>
   );
 }
