@@ -1,54 +1,102 @@
-import { useEffect, useRef } from 'react';
-import { connectNotifications } from '../services/wsService';
-import { useNotifications } from '../store/NotificationsContext';
-import { useAuthContext } from '../store/AuthContext';
-import { useDocuments} from "./useDocuments";
+import {useEffect, useRef} from 'react';
+import {connectNotifications} from '../services/wsService';
+import {useNotifications} from '../store/NotificationsContext';
+import {useAuthContext} from '../store/AuthContext';
+import {useDocuments} from "./useDocuments";
+
+
+let wsInstance = null;
+let wsConnecting = false;
+let wsConsumers = 0;
 
 export function useWebSocket() {
   const { addMessage } = useNotifications();
+  const addMessageRef = useRef(addMessage);
   const { isAuthenticated } = useAuthContext();
-  const { refresh } = useDocuments();
   const connRef = useRef(null);
 
   useEffect(() => {
+    addMessageRef.current = addMessage;
+  }, [addMessage]);
+
+  useEffect(() => {
+    wsConsumers += 1;
+
     if (!isAuthenticated) {
-      // Close if exists when user logs out
-      connRef.current?.close();
+      if (wsInstance) {
+        try { wsInstance.close?.(); } catch {}
+      }
+      wsInstance = null;
+      wsConnecting = false;
       connRef.current = null;
-      return;
+
+      return () => {
+        wsConsumers = Math.max(0, wsConsumers - 1);
+      };
     }
 
-    const conn = connectNotifications((payload) => {
-      const eventName = typeof payload === 'object' && payload ? payload.event : undefined;
-
-      // Extensible event handlers map
-      const handlers = {
-        'documents.processed': () => {
-          // Remove document from a list
-          if (typeof window !== 'undefined') {
-              window.dispatchEvent(
-                  new CustomEvent('documents:update', {
-                      detail: { id: payload?.id }
-                  })
-              );
-              addMessage(`Document ${payload?.name} ready for search`)
-          }
-        },
+    const state = wsInstance?.state();
+    if (wsInstance && (state === WebSocket.OPEN || state === WebSocket.CONNECTING)) {
+      connRef.current = wsInstance;
+      return () => {
+        wsConsumers = Math.max(0, wsConsumers - 1);
+        if (wsConsumers === 0 && !isAuthenticated) {
+          try { wsInstance.close?.(); } catch {}
+          wsInstance = null;
+          wsConnecting = false;
+        }
       };
+    }
 
-      if (eventName && handlers[eventName]) {
-        handlers[eventName]();
-        return; // handled
+    if (!wsConnecting) {
+      wsConnecting = true;
+
+      wsInstance = connectNotifications((payload) => {
+        const eventName = typeof payload === 'object' && payload ? payload.event : undefined;
+
+        const handlers = {
+          'documents.processed': () => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('documents:update', { detail: { id: payload?.id } })
+              );
+              addMessageRef.current(`Document ${payload?.name} ready for search`);
+            }
+          },
+          'chat.response': () => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('chat:response', { detail: payload })
+              );
+            }
+          },
+        };
+
+        if (eventName && handlers[eventName]) {
+          handlers[eventName]();
+          return;
+        }
+
+        const text = typeof payload === 'string' ? payload : JSON.stringify(payload);
+        addMessageRef.current(text);
+      });
+
+      wsInstance?.addEventListener?.('open', () => { wsConnecting = false; });
+      wsInstance?.addEventListener?.('close', () => { wsConnecting = false; });
+      wsInstance?.addEventListener?.('error', () => { wsConnecting = false; });
+    }
+
+    connRef.current = wsInstance;
+
+    return () => {
+      wsConsumers = Math.max(0, wsConsumers - 1);
+      if (wsConsumers === 0 && !isAuthenticated) {
+        try { wsInstance?.close?.(); } catch {}
+        wsInstance = null;
+        wsConnecting = false;
       }
-
-      // Default behavior: show the message as a notification
-      const text = typeof payload === 'string' ? payload : JSON.stringify(payload);
-      addMessage(text);
-    });
-
-    connRef.current = conn;
-    return () => conn.close();
-  }, [isAuthenticated, addMessage]);
+    };
+  }, [isAuthenticated]);
 
   return connRef.current;
 }
