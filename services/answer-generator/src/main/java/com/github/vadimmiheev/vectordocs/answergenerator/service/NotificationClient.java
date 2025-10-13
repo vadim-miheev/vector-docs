@@ -27,7 +27,7 @@ public class NotificationClient {
     @Value("${app.notification.rsocket.port:7000}")
     private int rsocketPort;
 
-    public void streamAnswer(String userId, Flux<String> tokens) {
+    public void streamAnswer(String userId, String requestId, Flux<String> tokens) {
         log.info("Streaming answer to notification-service via RSocket route 'search.result', userId={}", userId);
 
         RSocketRequester requester = rSocketRequesterBuilder
@@ -35,7 +35,7 @@ public class NotificationClient {
 
         String metadataJson;
         try {
-            metadataJson = objectMapper.writeValueAsString(Map.of("userId", userId));
+            metadataJson = objectMapper.writeValueAsString(Map.of("userId", userId, "requestId", requestId));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize metadata for RSocket", e);
         }

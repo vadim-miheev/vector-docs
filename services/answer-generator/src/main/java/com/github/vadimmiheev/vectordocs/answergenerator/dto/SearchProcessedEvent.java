@@ -11,6 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class SearchProcessedEvent {
+    private String requestId;
     private String query;
     private String userId;
     private List<SearchContextItem> context;

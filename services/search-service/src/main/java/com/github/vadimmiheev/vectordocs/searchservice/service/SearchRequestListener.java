@@ -72,6 +72,7 @@ public class SearchRequestListener {
             SearchProcessedEvent processed = SearchProcessedEvent.builder()
                     .query(query)
                     .userId(userId)
+                    .requestId(request.getRequestId())
                     .context(context)
                     .embeddings(embeddings)
                     .build();

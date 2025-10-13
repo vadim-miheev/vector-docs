@@ -53,6 +53,7 @@ public class AnswerGenerationListener {
         try {
             SearchProcessedEvent event = objectMapper.readValue(message, SearchProcessedEvent.class);
             String userId = event.getUserId();
+            String requestId = event.getRequestId();
             String query = event.getQuery();
             List<SearchProcessedEvent.SearchContextItem> context = event.getContext();
             List<SearchProcessedEvent.Hit> embeddings = event.getEmbeddings();
@@ -64,14 +65,14 @@ public class AnswerGenerationListener {
 
             if (embeddings == null || embeddings.isEmpty()) {
                 Flux<String> emptyFlux = Flux.just("Documents do not contain an answer to the question.\n");
-                notificationClient.streamAnswer(userId, emptyFlux);
+                notificationClient.streamAnswer(userId, requestId, emptyFlux);
                 log.info("No embeddings provided; streamed insufficiency message for userId={}", userId);
                 return;
             }
 
             // Create a sink and stream tokens to notification-service
             Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-            notificationClient.streamAnswer(userId, sink.asFlux());
+            notificationClient.streamAnswer(userId, requestId, sink.asFlux());
 
             streamingChatModel.generate(
                 buildMessages(query, context, embeddings),

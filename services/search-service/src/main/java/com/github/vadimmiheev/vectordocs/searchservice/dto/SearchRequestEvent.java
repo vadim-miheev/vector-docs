@@ -12,6 +12,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchRequestEvent {
+    private String requestId;
     private String query;
     private ArrayList<SearchContextItem> context;
     private String userId;
