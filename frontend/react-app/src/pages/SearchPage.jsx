@@ -21,7 +21,15 @@ function TrashIcon({ className = 'w-5 h-5' }) {
 }
 
 export default function SearchPage() {
-  const [messages, setMessages] = useState([]); // {id, role: 'user'|'assistant', text, sources?}
+  const [messages, setMessages] = useState(() => {
+    try {
+      const raw = localStorage.getItem('vd_messages');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  });
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const lastRequestIDRef = useRef('');
@@ -32,6 +40,16 @@ export default function SearchPage() {
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
     lastMessageRef.current = messages[messages.length - 1] ?? {};
+  }, [messages]);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    try {
+      if (messages?.length) localStorage.setItem('vd_messages', JSON.stringify(messages));
+      else localStorage.removeItem('vd_messages');
+    } catch (_) {
+      // ignore
+    }
   }, [messages]);
 
   // Rendering messages from server
