@@ -27,6 +27,11 @@ async function request(url, { method = 'GET', headers = {}, body, isForm = false
     const text = await res.text().catch(() => '');
     throw new Error(text || `Request failed: ${res.status}`);
   }
+
+  if (res.status === 202) {
+    return res;
+  }
+
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) return res.json();
   return res.text();
