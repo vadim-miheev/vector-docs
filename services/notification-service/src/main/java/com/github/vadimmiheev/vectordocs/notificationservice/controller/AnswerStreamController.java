@@ -1,5 +1,9 @@
 package com.github.vadimmiheev.vectordocs.notificationservice.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.vadimmiheev.vectordocs.notificationservice.ws.NotificationSessionRegistry;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -10,15 +14,43 @@ import java.util.Map;
 
 @Controller
 @Slf4j
+@RequiredArgsConstructor
 public class AnswerStreamController {
+
+    private final NotificationSessionRegistry sessionRegistry;
+    private final ObjectMapper objectMapper;
 
     @MessageMapping("search.result")
     public Flux<Void> searchResultsHandler(Flux<String> tokens, @Header(name = "metadata", required = false) Map<String, Object> metadata)
     {
-        log.info("User ID: {}", metadata.get("userId"));
+        String userId = (String) metadata.get("userId");
+
         return tokens
-                .doOnNext(System.out::println) //TODO replace with UI communication
-                .doOnComplete(System.out::println)
+                .doOnNext((t) -> {
+                    Map<String, Object> payload = Map.of(
+                            "event", "chat.response",
+                            "requestId", metadata.get("requestId"),
+                            "token", t
+                    );
+                    try {
+                        sessionRegistry.sendToUser(userId, objectMapper.writeValueAsString(payload));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .doOnComplete(() -> {
+                    Map<String, Object> payload = Map.of(
+                            "event", "chat.response",
+                            "requestId", metadata.get("requestId"),
+                            "complete", true
+                    );
+                    try {
+                        sessionRegistry.sendToUser(userId, objectMapper.writeValueAsString(payload));
+                        log.info("Completed streaming chat.message for userId={}", userId);
+                    } catch (JsonProcessingException e) {
+                        log.error("Failed to send chat.response.complete message for userId={}", userId, e);
+                    }
+                })
                 .then()
                 .flux();
     }
