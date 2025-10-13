@@ -117,7 +117,7 @@ export default function SearchPage() {
 
 
   return (
-    <div className="min-h-screen text-black flex flex-col">
+    <div className="text-black flex flex-col">
       {/* Header */}
       <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-semibold tracking-tight">AI Search</h1>
@@ -182,8 +182,9 @@ export default function SearchPage() {
       </main>
 
       {/* Input bar */}
-      <form onSubmit={sendMessage} className="sticky bottom-0 border-t border-gray-300 backdrop-blur px-4 py-3">
-        <div className="mx-auto w-full flex items-center gap-2">
+      <div className={"container fixed bottom-0 w-full"}>
+        <form onSubmit={sendMessage} className="relative w-full bottom-0 border-t border-gray-300 backdrop-blur px-4 py-3">
+          <div className="mx-auto w-full flex items-center gap-2">
           <textarea
             ref={el => (textareaRef.current = el)}
             value={input}
@@ -201,16 +202,17 @@ export default function SearchPage() {
             className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-gray-400"
           />
 
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="inline-flex items-center justify-center rounded-3xl border border-gray-400 px-2 py-2 text-sm hover:bg-black hover:text-white disabled:opacity-40"
-            title="Send"
-          >
-            <SendIcon />
-          </button>
-        </div>
-      </form>
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className="inline-flex items-center justify-center rounded-3xl border border-gray-400 px-2 py-2 text-sm hover:bg-black hover:text-white disabled:opacity-40"
+              title="Send"
+            >
+              <SendIcon />
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
