@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import {apiClient, ENDPOINTS} from "../services/apiClient";
 import {useNotifications} from "../store/NotificationsContext";
+import {useAuth} from '../hooks/useAuth';
 
 function SendIcon({ className = 'w-5 h-5' }) {
   return (
@@ -32,14 +33,19 @@ export default function SearchPage() {
   });
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const lastRequestIDRef = useRef('');
-  const lastMessageRef = useRef({});
+  const currentRequestIDRef = useRef('');
+  const currentAgentMessageRef = useRef({});
   const {addMessage} = useNotifications();
   const textareaRef = useRef(null);
+  const conn = useWebSocket();
+  const {logout} = useAuth();
+  const messagesEndRef = useRef(null);
 
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
-    lastMessageRef.current = messages[messages.length - 1] ?? {};
+    if (messages[messages.length - 1] && messages[messages.length - 1].role === 'agent') {
+      currentAgentMessageRef.current = messages[messages.length - 1] ?? {};
+    }
   }, [messages]);
 
   // Persist messages to localStorage
@@ -52,29 +58,37 @@ export default function SearchPage() {
     }
   }, [messages]);
 
-  // Rendering messages from server
+  // Rendering messages from server (stream)
   useEffect(() => {
     function onChatResponse(e) {
       const payload = e?.detail ?? e;
 
-      if (payload?.requestId === lastRequestIDRef.current) {
+      if (payload?.requestId === currentRequestIDRef.current) {
+        setIsSending(false)
+
         if (payload?.complete === true) {
-          setIsSending(false)
+          currentAgentMessageRef.current = {}
+          currentRequestIDRef.current = ''
           return
         }
 
-        if (lastMessageRef.current.id === lastRequestIDRef.current) {
-          lastMessageRef.current.text += payload?.token;
-          setMessages(prevState => {
+        currentAgentMessageRef.current.text += payload?.token;
+        setMessages(prevState => {
+          if (prevState.filter(m => m.id === currentRequestIDRef.current).length === 0) {
+            return [
+              ...prevState,
+              { id: currentRequestIDRef.current, role: 'agent', text: payload?.token, sources: [] }
+            ]
+          } else {
             const updatedMessages = [...prevState];
             return updatedMessages.map(m => {
-              if (m.id === lastRequestIDRef.current) {
-                return lastMessageRef.current;
+              if (m.id === currentRequestIDRef.current) {
+                return currentAgentMessageRef.current;
               }
               return m;
             })
-          })
-        }
+          }
+        })
       }
     }
 
@@ -85,6 +99,13 @@ export default function SearchPage() {
   // User message submission
   function sendMessage(e) {
     e?.preventDefault?.();
+
+    if (isSending) return;
+    if (conn.state() !== WebSocket.OPEN) {
+      logout()
+      return;
+    }
+
     const trimmed = input.trim();
     if (!trimmed) return;
 
@@ -96,21 +117,15 @@ export default function SearchPage() {
     const history = messages.slice(-8).map((m) => ({ role: m.role, message: m.text }));
 
     setIsSending(true);
-    lastRequestIDRef.current = `${Date.now()}-a`;
+    currentRequestIDRef.current = `${Date.now()}-a`;
     apiClient.post(ENDPOINTS.search, {
-      'requestId': lastRequestIDRef.current,
+      'requestId': currentRequestIDRef.current,
       'query': trimmed,
       'context': history
     }).then(r => {
-      console.log("Response: ", r)
       if (r.status !== 202) {
         addMessage("Error: " + r.status + " " + r.statusText)
         setIsSending(false)
-      } else {
-        setMessages(prev => [
-          ...prev,
-          { id: lastRequestIDRef.current, role: 'assistant', text: '', sources: [] }
-        ])
       }
     });
   }
@@ -133,6 +148,11 @@ export default function SearchPage() {
     autoResize();
   }, [input]);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isSending]);
 
   return (
     <div className="text-black flex flex-col">
@@ -142,7 +162,8 @@ export default function SearchPage() {
         <button
           type="button"
           onClick={clearChat}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-400 px-3 py-1.5 text-sm hover:bg-neutral-900 hover:text-white"
+          className="inline-flex items-center gap-2 rounded-md border border-gray-400 px-3 py-1.5 text-sm
+          hover:bg-red-500 hover:text-white"
           title="Clear chat"
         >
           <span className="hidden sm:inline">Clear</span>
@@ -151,22 +172,22 @@ export default function SearchPage() {
       </header>
 
       {/* Messages area */}
-      <main className="flex-1 overflow-y-auto px-4 py-6">
+      <main className="flex-1 overflow-y-auto px-4 py-6 mb-20">
         {messages?.length === 0 ? (
           <div className="text-neutral-400 text-sm">Ask a question below, the answer will appear here.</div>
         ) : (
           <div className="space-y-6">
             {messages?.map((m) => (
-              <div key={m.id} className={m.role === 'assistant' ? '' : 'text-right'}>
+              <div key={m.id} className={m.role === 'agent' ? '' : 'text-right'}>
                 <div
                   className={
-                    m.role === 'assistant'
+                    m.role === 'agent'
                       ? 'inline-block max-w-3xl rounded-lg bg-neutral-200 border border-gray-400 px-4 py-3 text-black'
-                      : 'inline-block max-w-3xl rounded-lg border border-gray-400 px-4 py-3 text-black'
+                      : 'inline-block max-w-3xl rounded-lg border border-gray-400 px-4 py-3 text-black text-left'
                   }
                 >
                   <div className="whitespace-pre-wrap leading-relaxed">{m.text}</div>
-                  {m.role === 'assistant' && Array.isArray(m.sources) && m.sources.length > 0 && (
+                  {m.role === 'agent' && Array.isArray(m.sources) && m.sources.length > 0 && (
                     <div className="mt-3 border-t border-neutral-800 pt-2">
                       <div className="text-xs text-neutral-400 mb-1">Sources:</div>
                       <ul className="list-disc list-inside space-y-1">
@@ -195,13 +216,14 @@ export default function SearchPage() {
             {isSending && (
               <div className="text-xs text-neutral-500">Waiting for response…</div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </main>
 
       {/* Input bar */}
-      <div className={"container fixed bottom-0 w-full"}>
-        <form onSubmit={sendMessage} className="relative w-full bottom-0 border-t border-gray-300 backdrop-blur px-4 py-3">
+      <div className={"container fixed bottom-0 w-full backdrop-blur border-t border-gray-300"}>
+        <form onSubmit={sendMessage} className="relative w-full bottom-0   px-4 py-3">
           <div className="mx-auto w-full flex items-center gap-2">
           <textarea
             ref={el => (textareaRef.current = el)}
@@ -217,13 +239,22 @@ export default function SearchPage() {
               resize: 'none',
             }}
             placeholder={'Ask a question…'}
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-neutral-500
+            focus:outline-none focus:ring-1 focus:ring-gray-400"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+
           />
 
             <button
               type="submit"
               disabled={!input.trim()}
-              className="inline-flex items-center justify-center rounded-3xl border border-gray-400 px-2 py-2 text-sm hover:bg-black hover:text-white disabled:opacity-40"
+              className="inline-flex items-center justify-center rounded-3xl border border-gray-400 px-2 py-2 text-sm
+              hover:bg-blue-500 hover:text-white disabled:opacity-20"
               title="Send"
             >
               <SendIcon />
