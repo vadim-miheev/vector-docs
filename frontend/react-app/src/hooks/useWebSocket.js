@@ -2,7 +2,6 @@ import {useEffect, useRef} from 'react';
 import {connectNotifications} from '../services/wsService';
 import {useNotifications} from '../store/NotificationsContext';
 import {useAuthContext} from '../store/AuthContext';
-import {useDocuments} from "./useDocuments";
 
 
 let wsInstance = null;
@@ -36,19 +35,9 @@ export function useWebSocket() {
     }
 
     const state = wsInstance?.state();
-    if (wsInstance && (state === WebSocket.OPEN || state === WebSocket.CONNECTING)) {
-      connRef.current = wsInstance;
-      return () => {
-        wsConsumers = Math.max(0, wsConsumers - 1);
-        if (wsConsumers === 0 && !isAuthenticated) {
-          try { wsInstance.close?.(); } catch {}
-          wsInstance = null;
-          wsConnecting = false;
-        }
-      };
-    }
+    const wsExists = wsInstance && (state === WebSocket.OPEN || state === WebSocket.CONNECTING);
 
-    if (!wsConnecting) {
+    if (!wsConnecting && !wsExists) {
       wsConnecting = true;
 
       wsInstance = connectNotifications((payload) => {
