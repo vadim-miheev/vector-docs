@@ -1,4 +1,4 @@
-package com.github.vadimmiheev.vectordocs.searchservice.dto;
+package com.github.vadimmiheev.vectordocs.answergenerator.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class SearchRequestEvent {
     private String requestId;
     private String query;
-    private String ragQuery = "";
+    private String ragQuery;
     private ArrayList<SearchContextItem> context;
     private String userId;
 

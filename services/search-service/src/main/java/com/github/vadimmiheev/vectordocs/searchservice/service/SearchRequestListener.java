@@ -17,7 +17,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,14 +37,14 @@ public class SearchRequestListener {
     @Value("${app.search.top-k:5}")
     private int topK;
 
-    @KafkaListener(topics = "${app.topics.search-request}", groupId = "${spring.kafka.consumer.group-id:search-service}")
+    @KafkaListener(topics = "${app.topics.search-request-supplemented}", groupId = "${spring.kafka.consumer.group-id:search-service}")
     public void onSearchRequest(String message,
                                 @Header(name = "kafka_receivedMessageKey", required = false) String key) {
         try {
             SearchRequestEvent request = objectMapper.readValue(message, SearchRequestEvent.class);
             String userId = request.getUserId();
             String query = request.getQuery();
-            ArrayList<SearchRequestEvent.SearchContextItem> context = request.getContext();
+            String ragQuery = request.getRagQuery().isEmpty() ? request.getQuery() : request.getRagQuery();
 
             if (!StringUtils.hasText(userId) || !StringUtils.hasText(query)) {
                 log.warn("Skip processing: missing userId or query. key={}, userId={}, queryPresent={}", key, userId, StringUtils.hasText(query));
@@ -53,7 +52,7 @@ public class SearchRequestListener {
             }
 
             // 1) Build query embedding
-            Response<dev.langchain4j.data.embedding.Embedding> response = embeddingModel.embed(query);
+            Response<dev.langchain4j.data.embedding.Embedding> response = embeddingModel.embed(ragQuery);
             float[] queryVector = response.content().vector();
 			String pgVectorString = Arrays.toString(queryVector);
 
@@ -73,12 +72,12 @@ public class SearchRequestListener {
                     .query(query)
                     .userId(userId)
                     .requestId(request.getRequestId())
-                    .context(context)
+                    .context(request.getContext())
                     .embeddings(embeddings)
                     .build();
 
             String payload = objectMapper.writeValueAsString(processed);
-            kafkaTemplate.send(processedTopic, userId, payload);
+            kafkaTemplate.send(processedTopic, key, payload);
             log.info("Published search.processed for userId={}, embeddings={} to topic {}", userId, embeddings.size(), processedTopic);
         } catch (Exception e) {
             log.error("Failed to process search.request message: {}", message, e);

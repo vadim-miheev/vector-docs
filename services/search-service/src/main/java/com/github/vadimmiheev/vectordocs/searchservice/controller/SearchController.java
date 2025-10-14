@@ -48,8 +48,9 @@ public class SearchController {
         }
 
         try {
+            String key = "u" + request.getUserId() + "." + request.getRequestId();
             String payload = objectMapper.writeValueAsString(request);
-            kafkaTemplate.send(searchRequestTopic, request.getUserId(), payload);
+            kafkaTemplate.send(searchRequestTopic, key, payload);
             log.info("Published search request to topic '{}' for userId={}", searchRequestTopic, request.getUserId());
         } catch (Exception ex) {
             log.error("Failed to publish search request to topic '{}' for userId={}", searchRequestTopic, request.getUserId(), ex);
