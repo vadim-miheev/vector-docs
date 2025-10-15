@@ -28,32 +28,32 @@ export default function AppRouter() {
               <div className={"flex gap-4 p-4"}>
                 <NavLink
                   to="/documents"
-                  className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+                  className={'nav-link hover:underline ' + (({isActive}) => isActive ? 'active' : '')}
                 >
                   Documents
                 </NavLink>
                 <NavLink
                   to="/search"
-                  className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+                  className={'nav-link hover:underline ' + (({isActive}) => isActive ? 'active' : '')}
                 >
                   Search
                 </NavLink>
               </div>
               <div className={"p-4"}>
-                <Link className={"nav-link"} to="/login" onClick={() => logout()}>Log out</Link>
+                <Link className={"nav-link hover:underline"} to="/login" onClick={() => logout()}>Log out</Link>
               </div>
             </div>
           ) : (
             <div className={"flex gap-4 p-4"}>
               <NavLink
                 to="/login"
-                className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+                className={'nav-link hover:underline ' + (({isActive}) => isActive ? 'active' : '')}
               >
                 Log in
               </NavLink>
               <NavLink
                 to="/register"
-                className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+                className={'nav-link hover:underline ' + (({isActive}) => isActive ? 'active' : '')}
               >
                 Register
               </NavLink>
