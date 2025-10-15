@@ -21,12 +21,11 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <div className="container">
-        <nav style={{display: 'flex'}}>
+        <nav className={"flex sticky top-0 z-100 bg-white"}>
           {isAuthenticated ? (
 
-            <div
-              style={{display: 'flex', width: '100%', justifyContent: 'space-between', borderBottom: '1px solid #eee'}}>
-              <div style={{display: 'flex', gap: 12, padding: 12}}>
+            <div className={"flex w-full justify-between border-b border-gray-200"}>
+              <div className={"flex gap-4 p-4"}>
                 <NavLink
                   to="/documents"
                   className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
@@ -40,12 +39,12 @@ export default function AppRouter() {
                   Search
                 </NavLink>
               </div>
-              <div style={{padding: 12}}>
+              <div className={"p-4"}>
                 <Link className={"nav-link"} to="/login" onClick={() => logout()}>Log out</Link>
               </div>
             </div>
           ) : (
-            <div style={{display: 'flex', gap: 12, padding: 12}}>
+            <div className={"flex gap-4 p-4"}>
               <NavLink
                 to="/login"
                 className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}

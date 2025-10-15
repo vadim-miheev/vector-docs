@@ -157,7 +157,7 @@ export default function SearchPage() {
   return (
     <div className="text-black flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-12 z-10 bg-white">
         <h1 className="text-lg font-semibold tracking-tight">AI Search</h1>
         <button
           type="button"
