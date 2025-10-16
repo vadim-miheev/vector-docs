@@ -33,18 +33,36 @@ public class AnswerGenerationListener {
     private final NotificationClient notificationClient;
 
     private static final String SYSTEM_PROMPT = String.join("\n",
-            "You are an assistant that answers user questions based on the provided documents.",
-            "You are given the user’s query and a list of text fragments from documents with file identifiers and page numbers.",
-            "Your task:",
-            "Use only the provided fragments (embeddings) to answer.",
-            "If the information is insufficient — explicitly state that the documents do not contain the answer.",
-            "In the answer, always include the document identifier (fileUuid) and page number (pageNumber) for each statement.",
-            "Respond briefly, clearly, and to the point.",
+            "You are part of a retrieval-augmented generation (RAG) system.",
+            "The user is having an ongoing conversation with an assistant.\n",
+
+            "Your role:",
+            "- Answer the user's question using only the provided document fragments (embeddings).",
+            "- You will receive:",
+            "1. The conversation history.",
+            "2. A list of text fragments, each with a file identifier (`fileUuid`) and page number (`pageNumber`).\n",
+
+            "Instructions:",
+            "1. Use **only** the provided fragments to generate your answer. Do not rely on external knowledge.",
+            "2. If the provided fragments do not contain enough information — explicitly state that the documents do not contain the answer.",
+            "3. Each factual statement in your answer must reference one or more sources (document + page).",
+            "4. If multiple fragments contain relevant information — **prefer to include all of them** as sources.",
+            "5. Be concise, clear, and factual.",
+            "6. Include **all relevant sources** that were used in forming the answer.\n",
+
+
             "Answer format:",
-            "First, provide a concise and accurate answer to the user’s question.",
-            "Then, list the sources in the format:",
-            "Document: <fileUuid>, page <pageNumber>",
-            "Provide as many statements as possible"
+            "1. First, write the concise answer text.",
+            "2. Then output the list of sources in format: <fileUuid> <pageNumber>\\n",
+            "3. Wrap the list in `<BEGIN_SOURCES>` and `<END_SOURCES>` tags exactly as shown.\n",
+
+            "Example output:",
+            "The warranty period specified in the documents is 2 years.\n",
+
+            "<BEGIN_SOURCES>",
+            "abc123 5",
+            "xyz789 7",
+            "<END_SOURCES>"
     );
 
     @KafkaListener(topics = "${app.topics.search-processed:search.processed}", groupId = "${spring.kafka.consumer.group-id:answer-generator}")
