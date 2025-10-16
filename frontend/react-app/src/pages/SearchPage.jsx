@@ -75,6 +75,7 @@ export default function SearchPage() {
         currentAgentMessageRef.current.text += payload?.token;
         setMessages(prevState => {
           if (prevState.filter(m => m.id === currentRequestIDRef.current).length === 0) {
+            if (currentRequestIDRef.current === '') return prevState // in case if ID was just cleared
             return [
               ...prevState,
               { id: currentRequestIDRef.current, role: 'agent', text: payload?.token, sources: [] }
