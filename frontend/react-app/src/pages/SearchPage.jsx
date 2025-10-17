@@ -4,6 +4,7 @@ import {apiClient, ENDPOINTS} from "../services/apiClient";
 import {useNotifications} from "../store/NotificationsContext";
 import {useAuth} from '../hooks/useAuth';
 import DownloadLink from "../components/DownloadLink";
+import { useParams, useNavigate } from 'react-router-dom';
 
 function SendIcon({ className = 'w-5 h-5' }) {
   return (
@@ -41,6 +42,10 @@ export default function SearchPage() {
   const conn = useWebSocket();
   const {logout} = useAuth();
   const messagesEndRef = useRef(null);
+  const { documentId } = useParams();
+  const navigate = useNavigate();
+  const [selectedDocId, setSelectedDocId] = useState('');
+  const [selectedDocName, setSelectedDocName] = useState('');
 
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
@@ -48,6 +53,25 @@ export default function SearchPage() {
       currentAgentMessageRef.current = messages[messages.length - 1] ?? {};
     }
   }, [messages]);
+
+  // Load document info from path param
+  useEffect(() => {
+    let cancelled = false;
+    if (documentId) {
+      setSelectedDocId(documentId);
+      apiClient.get(`${ENDPOINTS.documents}/${encodeURIComponent(documentId)}`)
+        .then((data) => {
+          if (!cancelled) setSelectedDocName(data?.name || '');
+        })
+        .catch(() => {
+          if (!cancelled) setSelectedDocName('');
+        });
+    } else {
+      setSelectedDocId('');
+      setSelectedDocName('');
+    }
+    return () => { cancelled = true; };
+  }, [documentId]);
 
   // Persist messages to localStorage
   useEffect(() => {
@@ -124,11 +148,15 @@ export default function SearchPage() {
 
     setIsSending(true);
     currentRequestIDRef.current = `${Date.now()}-a`;
-    apiClient.post(ENDPOINTS.search, {
-      'requestId': currentRequestIDRef.current,
-      'query': trimmed,
-      'context': history
-    }).then(r => {
+    const payload = {
+      requestId: currentRequestIDRef.current,
+      query: trimmed,
+      context: history,
+    };
+    if (selectedDocId) {
+      payload.documentId = selectedDocId;
+    }
+    apiClient.post(ENDPOINTS.search, payload).then(r => {
       if (r.status !== 202) {
         addMessage("Error: " + r.status + " " + r.statusText)
         setIsSending(false)
@@ -164,7 +192,23 @@ export default function SearchPage() {
     <div className="text-black flex flex-col">
       {/* Header */}
       <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-[57px] z-10 bg-white">
-        <h1 className="text-lg font-semibold tracking-tight">AI Search</h1>
+        <div className="flex items-baseline gap-4 min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight">AI Search</h1>
+          {selectedDocId && (
+            <span className="inline-flex items-center gap-2 text-xs border border-gray-300 rounded-md px-2 py-0.5 bg-gray-100 max-w-xs">
+              <span className="truncate" title={selectedDocName || selectedDocId}>{selectedDocName || 'Document'}</span>
+              <button
+                type="button"
+                onClick={() => navigate('/search')}
+                className="text-gray-500 hover:text-black"
+                aria-label="Clear document filter"
+                title="Clear document filter"
+              >
+                ×
+              </button>
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={clearChat}
