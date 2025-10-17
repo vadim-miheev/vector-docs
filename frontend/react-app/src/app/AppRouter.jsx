@@ -65,6 +65,7 @@ export default function AppRouter() {
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="/documents" element={<RequireAuth><DocumentsPage/></RequireAuth>}/>
           <Route path="/search" element={<RequireAuth><SearchPage/></RequireAuth>}/>
+          <Route path="/search/:documentId" element={<RequireAuth><SearchPage/></RequireAuth>}/>
           <Route path="*" element={<Navigate to={isAuthenticated ? '/documents' : '/login'} replace/>}/>
         </Routes>
       </div>
