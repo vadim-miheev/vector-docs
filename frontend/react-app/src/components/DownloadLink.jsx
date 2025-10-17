@@ -2,7 +2,7 @@ import React from 'react';
 import {getTokenFromCookie} from "../services/authService";
 import {ENDPOINTS} from "../config/endpoints";
 
-export default function DownloadLink ({ fileId, fileName, children, open = false }) {
+export default function DownloadLink ({ fileId, fileName, children, page, open = false, classes = "" }) {
     const handleDownload = async () => {
         const token = getTokenFromCookie()
         const response = await fetch( ENDPOINTS.documents + `/${fileId}/download`, {
@@ -18,7 +18,11 @@ export default function DownloadLink ({ fileId, fileName, children, open = false
         }
 
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+        let url = window.URL.createObjectURL(blob);
+
+        if (page) {
+          url += `#page=${page}`
+        }
 
         if (open) {
             window.open(url, '_blank');
@@ -35,7 +39,7 @@ export default function DownloadLink ({ fileId, fileName, children, open = false
     };
 
     return (
-        <button onClick={handleDownload} className="download-link">
+        <button onClick={handleDownload} className={"download-link " + classes}>
             {children}
         </button>
     );

@@ -47,16 +47,17 @@ export default function DocumentItem({doc, onDelete}) {
                 </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
             </div>
-            <div style={{display: 'flex', gap: 8}}>
-                <DownloadLink fileId={doc.id} fileName={doc.name} open={true}>
+            <div className={"flex gap-4"} >
+                <DownloadLink fileId={doc.id} fileName={doc.name} open={true} classes={"hover:underline"}>
                     Open
                 </DownloadLink>
-                <DownloadLink fileId={doc.id} fileName={doc.name}>
+                <DownloadLink fileId={doc.id} fileName={doc.name} classes={"hover:underline"}>
                     Download
                 </DownloadLink>
                 <button
                     onClick={() => onDelete?.(doc.id)}
                     disabled={deleteDisabled}
+                    className={"hover:underline"}
                     style={{
                         color: deleteDisabled ? '#aaa' : '#b00',
                         cursor: deleteDisabled ? 'not-allowed' : 'pointer'
