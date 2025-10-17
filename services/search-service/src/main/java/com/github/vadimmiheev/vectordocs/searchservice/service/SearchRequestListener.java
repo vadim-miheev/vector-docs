@@ -63,6 +63,7 @@ public class SearchRequestListener {
             List<SearchProcessedEvent.Hit> embeddings = hits.stream()
                     .map(e -> SearchProcessedEvent.Hit.builder()
                             .fileUuid(e.getFileUuid())
+                            .fileName(e.getFileName())
                             .pageNumber(e.getPageNumber())
                             .chunkText(e.getChunkText())
                             .build())

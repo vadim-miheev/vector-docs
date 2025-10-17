@@ -74,6 +74,7 @@ public class EmbeddingService {
             for (int i = 0; i < segments.size(); i++) {
                 Embedding entity = Embedding.builder()
                         .fileUuid(fileUuid)
+                        .fileName(event.getName())
                         .userId(userId)
                         .createdAt(createdAt)
                         .chunkText(chunks.get(i))

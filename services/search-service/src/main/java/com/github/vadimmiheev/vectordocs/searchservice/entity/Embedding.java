@@ -25,6 +25,9 @@ public class Embedding {
     @Column(name = "file_uuid", nullable = false)
     private UUID fileUuid;
 
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
     @Column(name = "chunk_text", columnDefinition = "TEXT", nullable = false)
     private String chunkText;
 

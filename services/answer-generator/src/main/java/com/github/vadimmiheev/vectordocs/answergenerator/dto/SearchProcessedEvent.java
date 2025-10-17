@@ -24,6 +24,7 @@ public class SearchProcessedEvent {
     @Builder
     public static class Hit {
         private UUID fileUuid;
+        private String fileName;
         private Integer pageNumber;
         private String chunkText;
     }

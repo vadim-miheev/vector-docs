@@ -40,7 +40,7 @@ public class AnswerGenerationListener {
             "- Answer the user's question using only the provided document fragments (embeddings).",
             "- You will receive:",
             "1. The conversation history.",
-            "2. A list of text fragments, each with a file identifier (`fileUuid`) and page number (`pageNumber`).\n",
+            "2. Document fragments array in JSON format, each with a file identifier (`fileUuid`), file name (`fileName`) and page number (`pageNumber`).\n",
 
             "Instructions:",
             "1. Use **only** the provided fragments to generate your answer. Do not rely on external knowledge.",
@@ -53,15 +53,14 @@ public class AnswerGenerationListener {
 
             "Answer format:",
             "1. First, write the concise answer text.",
-            "2. Then output the list of sources in format: <fileUuid> <pageNumber>\\n",
+            "2. Then output the list of sources in format: <fileUuid>/<fileName>/<pageNumber>\\n",
             "3. Wrap the list in `<BEGIN_SOURCES>` and `<END_SOURCES>` tags exactly as shown.\n",
 
             "Example output:",
-            "The warranty period specified in the documents is 2 years.\n",
-
+            "The warranty period specified in the documents is 2 years.",
             "<BEGIN_SOURCES>",
-            "abc123 5",
-            "xyz789 7",
+            "abc123/doc1.pdf/5",
+            "xyz789/doc 2.txt/7",
             "<END_SOURCES>"
     );
 
