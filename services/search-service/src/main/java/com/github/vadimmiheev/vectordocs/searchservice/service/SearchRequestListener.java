@@ -57,7 +57,12 @@ public class SearchRequestListener {
 			String pgVectorString = Arrays.toString(queryVector);
 
             // 2) Fetch top-K similar chunks for this user
-            List<Embedding> hits = embeddingRepository.findTopSimilar(userId, pgVectorString, PageRequest.of(0, topK));
+            List<Embedding> hits;
+            if (request.getDocumentId() == null) {
+                hits = embeddingRepository.findTopSimilar(userId, pgVectorString, PageRequest.of(0, topK));
+            } else {
+                hits = embeddingRepository.findTopSimilarByDoc(userId, pgVectorString, request.getDocumentId(), PageRequest.of(0, topK));
+            }
 
             // 3) Map to processed event
             List<SearchProcessedEvent.Hit> embeddings = hits.stream()

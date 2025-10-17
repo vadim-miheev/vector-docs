@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class SearchRequestEvent {
     private String requestId;
+    private UUID documentId;
     private String query;
     private String ragQuery;
     private ArrayList<SearchContextItem> context;
