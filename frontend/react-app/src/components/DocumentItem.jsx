@@ -1,5 +1,6 @@
 import React from 'react';
 import DownloadLink from "./DownloadLink";
+import { Link } from 'react-router-dom';
 
 function formatFileSize(bytes) {
     const n = Number(bytes);
@@ -47,13 +48,16 @@ export default function DocumentItem({doc, onDelete}) {
                 </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
             </div>
-            <div className={"flex gap-4"} >
+            <div className={"flex gap-4 items-center"} >
                 <DownloadLink fileId={doc.id} fileName={doc.name} open={true} classes={"hover:underline"}>
                     Open
                 </DownloadLink>
                 <DownloadLink fileId={doc.id} fileName={doc.name} classes={"hover:underline"}>
                     Download
                 </DownloadLink>
+                <Link to={`/search/${encodeURIComponent(doc.id)}`} className={"hover:underline"}>
+                    Search by
+                </Link>
                 <button
                     onClick={() => onDelete?.(doc.id)}
                     disabled={deleteDisabled}
