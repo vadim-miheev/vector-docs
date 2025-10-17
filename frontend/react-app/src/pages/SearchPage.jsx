@@ -3,6 +3,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import {apiClient, ENDPOINTS} from "../services/apiClient";
 import {useNotifications} from "../store/NotificationsContext";
 import {useAuth} from '../hooks/useAuth';
+import DownloadLink from "../components/DownloadLink";
 
 function SendIcon({ className = 'w-5 h-5' }) {
   return (
@@ -70,6 +71,10 @@ export default function SearchPage() {
           currentAgentMessageRef.current = {}
           currentRequestIDRef.current = ''
           return
+        }
+
+        if (payload?.sources) {
+          currentAgentMessageRef.current.sources = payload?.sources
         }
 
         currentAgentMessageRef.current.text += payload?.token;
@@ -187,24 +192,19 @@ export default function SearchPage() {
                       : 'inline-block max-w-3xl rounded-lg border border-gray-400 px-4 py-3 text-black text-left'
                   }
                 >
-                  <div className="whitespace-pre-wrap leading-relaxed">{m.text}</div>
+                  <div className="whitespace-pre-wrap leading-relaxed">{m.text.trim()}</div>
                   {m.role === 'agent' && Array.isArray(m.sources) && m.sources.length > 0 && (
-                    <div className="mt-3 border-t border-neutral-800 pt-2">
-                      <div className="text-xs text-neutral-400 mb-1">Sources:</div>
+                    <div className="pt-2">
+                      <div className="text-xs text-neutral-500 mb-1">Sources:</div>
                       <ul className="list-disc list-inside space-y-1">
                         {m.sources.map((s, idx) => {
-                          const title = s?.title || s?.name || s?.url || `Source ${idx + 1}`;
+                          const title = s?.name || `Source ${idx + 1}`;
                           const href = s?.url || s?.link || '#';
                           return (
-                            <li key={idx}>
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-neutral-200 hover:underline"
-                              >
-                                {title}
-                              </a>
+                            <li key={idx} className={"hover:underline"}>
+                              <DownloadLink fileId={s?.id} fileName={title} page={s?.page} open={true} classes={"text-blue-900 hover:underline"} onClick={() => {}}>
+                                {title} (page {s?.page})
+                              </DownloadLink>
                             </li>
                           );
                         })}
