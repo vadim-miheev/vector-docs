@@ -199,7 +199,6 @@ export default function SearchPage() {
                       <ul className="list-disc list-inside space-y-1">
                         {m.sources.map((s, idx) => {
                           const title = s?.name || `Source ${idx + 1}`;
-                          const href = s?.url || s?.link || '#';
                           return (
                             <li key={idx} className={"hover:underline"}>
                               <DownloadLink fileId={s?.id} fileName={title} page={s?.page} open={true} classes={"text-blue-900 hover:underline"} onClick={() => {}}>
