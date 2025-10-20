@@ -5,7 +5,7 @@ services:
     working_dir: /app
     volumes:
       - ./frontend/react-app:/app
-    command: sh -c "npm ci && npm run build"
+    command: sh -c "npm ci && PUBLIC_URL=${FE_PREFIX} npm run build"
     restart: "no"
 
   react-nginx:
