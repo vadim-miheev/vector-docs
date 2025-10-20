@@ -43,6 +43,8 @@ services:
     depends_on:
       - kafka
       - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   search-service:
     image: openjdk:24-jdk-slim
