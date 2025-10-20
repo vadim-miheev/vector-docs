@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-@CrossOrigin(origins = "http://localhost:3000") // TODO Only for Dev
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
