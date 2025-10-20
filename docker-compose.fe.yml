@@ -1,0 +1,22 @@
+services:
+  react-build:
+    image: node:22.18
+    container_name: react-build
+    working_dir: /app
+    volumes:
+      - ./frontend/react-app:/app
+    command: sh -c "npm ci && npm run build"
+    restart: "no"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      react-build:
+        condition: service_completed_successfully
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend/react-app/build:/usr/share/nginx/html:ro
+      - ./frontend/nginx:/etc/nginx/conf.d:ro

@@ -1,6 +1,7 @@
 include:
   - docker-compose.gradle.yml
   - docker-compose.db.yml
+  - docker-compose.fe.yml
 
 services:
   gateway:
