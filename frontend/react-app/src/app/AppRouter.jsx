@@ -19,7 +19,7 @@ export default function AppRouter() {
   const {isAuthenticated} = useAuthContext();
   const {logout} = useAuth();
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
       <div className="container">
         <nav className={"flex sticky top-0 z-100 bg-white"}>
           {isAuthenticated ? (
