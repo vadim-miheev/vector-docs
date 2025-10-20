@@ -8,9 +8,9 @@ services:
     command: sh -c "npm ci && npm run build"
     restart: "no"
 
-  nginx:
+  react-nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: react-nginx
     restart: unless-stopped
     depends_on:
       react-build:
