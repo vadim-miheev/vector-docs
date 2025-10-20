@@ -15,8 +15,6 @@ services:
     depends_on:
       react-build:
         condition: service_completed_successfully
-    ports:
-      - "3000:80"
     volumes:
       - ./frontend/react-app/build:/usr/share/nginx/html:ro
       - ./frontend/nginx:/etc/nginx/conf.d:ro
