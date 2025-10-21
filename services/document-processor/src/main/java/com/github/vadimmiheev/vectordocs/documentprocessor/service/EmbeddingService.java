@@ -30,6 +30,15 @@ public class EmbeddingService {
     @Value("${app.embedding.chunk-overlap:100}")
     private int chunkOverlap;
 
+    @Value("${app.embedding.batch-size:32}")
+    private int batchSize;
+
+    @Value("${app.embedding.retry.max-attempts:3}")
+    private int maxRetryAttempts;
+
+    @Value("${app.embedding.retry.backoff-ms:500}")
+    private long retryBackoffMs;
+
     public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
             UUID fileUuid = event.getId();
@@ -67,30 +76,59 @@ public class EmbeddingService {
                 segments.add(TextSegment.from(chunk));
             }
 
-            // Generate embeddings in batch
-            List<dev.langchain4j.data.embedding.Embedding> vectors = embeddingModel.embedAll(segments).content();
+            // Embedding generation with batches with retrays and staged saving
+            int totalSaved = 0;
+            for (int start = 0; start < segments.size(); start += Math.max(1, batchSize)) {
+                int end = Math.min(start + Math.max(1, batchSize), segments.size());
+                List<TextSegment> batch = segments.subList(start, end);
 
-            List<Embedding> entities = new ArrayList<>(segments.size());
-            for (int i = 0; i < segments.size(); i++) {
-                Embedding entity = Embedding.builder()
-                        .fileUuid(fileUuid)
-                        .fileName(event.getName())
-                        .userId(userId)
-                        .createdAt(createdAt)
-                        .chunkText(chunks.get(i))
-                        .vector(vectors.get(i).vector())
-                        .pageNumber(pageNumbers.get(i))
-                        .build();
-                entities.add(entity);
+                List<dev.langchain4j.data.embedding.Embedding> vectors = embedBatchWithRetry(batch);
+
+                List<Embedding> entities = new ArrayList<>(batch.size());
+                for (int i = 0; i < batch.size(); i++) {
+                    int globalIndex = start + i;
+                    Embedding entity = Embedding.builder()
+                            .fileUuid(fileUuid)
+                            .fileName(event.getName())
+                            .userId(userId)
+                            .createdAt(createdAt)
+                            .chunkText(chunks.get(globalIndex))
+                            .vector(vectors.get(i).vector())
+                            .pageNumber(pageNumbers.get(globalIndex))
+                            .build();
+                    entities.add(entity);
+                }
+
+                embeddingRepository.saveAll(entities);
+                totalSaved += entities.size();
+                log.info("Saved {} embeddings so far for document id={} (batch {}-{})", totalSaved, fileUuid, start, end - 1);
             }
 
-            embeddingRepository.saveAll(entities);
-            log.info("Saved {} embeddings for document id={} userId={}", entities.size(), fileUuid, userId);
-            return entities.size();
+            log.info("Saved {} embeddings for document id={} userId={}", totalSaved, fileUuid, userId);
+            return totalSaved;
         } catch (Exception e) {
             log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
         }
         return 0;
+    }
+
+    private List<dev.langchain4j.data.embedding.Embedding> embedBatchWithRetry(List<TextSegment> batch) throws InterruptedException {
+        int attempt = 0;
+        long backoff = Math.max(0L, retryBackoffMs);
+        while (true) {
+            try {
+                return embeddingModel.embedAll(batch).content();
+            } catch (Exception ex) {
+                attempt++;
+                if (attempt >= Math.max(1, maxRetryAttempts)) {
+                    throw ex;
+                }
+                long sleepMs = backoff * attempt; // linear-exponential growth
+                log.warn("Embedding batch failed (attempt {}/{}). Will retry in {} ms. Reason: {}",
+                        attempt, maxRetryAttempts, sleepMs, ex.getMessage());
+                Thread.sleep(sleepMs);
+            }
+        }
     }
 
     public void deleteEmbeddingsByDocumentId(UUID documentId) {
