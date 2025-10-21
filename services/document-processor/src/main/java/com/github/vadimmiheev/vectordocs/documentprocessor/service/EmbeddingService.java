@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
+import java.util.concurrent.Semaphore;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,6 +40,18 @@ public class EmbeddingService {
 
     @Value("${app.embedding.retry.backoff-ms:500}")
     private long retryBackoffMs;
+
+    @Value("${app.embedding.max-concurrency:1}")
+    private int maxConcurrency;
+
+    private Semaphore embedSemaphore;
+
+    @PostConstruct
+    void initSemaphore() {
+        int permits = Math.max(1, maxConcurrency);
+        this.embedSemaphore = new Semaphore(permits);
+        log.info("Embedding concurrency limited to {} concurrent batch(es)", permits);
+    }
 
     public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
@@ -113,21 +127,27 @@ public class EmbeddingService {
     }
 
     private List<dev.langchain4j.data.embedding.Embedding> embedBatchWithRetry(List<TextSegment> batch) throws InterruptedException {
-        int attempt = 0;
-        long backoff = Math.max(0L, retryBackoffMs);
-        while (true) {
-            try {
-                return embeddingModel.embedAll(batch).content();
-            } catch (Exception ex) {
-                attempt++;
-                if (attempt >= Math.max(1, maxRetryAttempts)) {
-                    throw ex;
+        // Limiting Competitiveness at the JVM Level
+        embedSemaphore.acquire();
+        try {
+            int attempt = 0;
+            long backoff = Math.max(0L, retryBackoffMs);
+            while (true) {
+                try {
+                    return embeddingModel.embedAll(batch).content();
+                } catch (Exception ex) {
+                    attempt++;
+                    if (attempt >= Math.max(1, maxRetryAttempts)) {
+                        throw ex;
+                    }
+                    long sleepMs = backoff * attempt; // linear-exponential growth
+                    log.warn("Embedding batch failed (attempt {}/{}). Will retry in {} ms. Reason: {}",
+                            attempt, maxRetryAttempts, sleepMs, ex.getMessage());
+                    Thread.sleep(sleepMs);
                 }
-                long sleepMs = backoff * attempt; // linear-exponential growth
-                log.warn("Embedding batch failed (attempt {}/{}). Will retry in {} ms. Reason: {}",
-                        attempt, maxRetryAttempts, sleepMs, ex.getMessage());
-                Thread.sleep(sleepMs);
             }
+        } finally {
+            embedSemaphore.release();
         }
     }
 
