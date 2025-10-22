@@ -105,7 +105,7 @@ public class EmbeddingService {
         }
     }
 
-    public void processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
+    public synchronized void processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
         List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorIsNull(fileUuid);
         if (pending == null || pending.isEmpty()) {
             log.info("No pending embeddings for document id={}", fileUuid);
