@@ -29,7 +29,7 @@ public class TextExtractionService {
     @Value("${app.ocr.enabled:true}")
     private boolean ocrEnabled;
 
-    @Value("${app.ocr.lang:rus+eng}")
+    @Value("${app.ocr.lang:eng}")
     private String ocrLang;
 
     @Value("${app.ocr.datapath:}")
