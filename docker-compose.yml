@@ -38,6 +38,7 @@ services:
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
+      TESSDATA_LANG: ${TESSDATA_LANG:-eng}
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
