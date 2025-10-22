@@ -80,7 +80,7 @@ public class EmbeddingService {
             embeddingRepository.saveAll(entities);
             log.info("Saved {} text chunks for document id={} userId={}", entities.size(), fileUuid, userId);
 
-            // Start embeddings generation in a separate thread (best-effort)
+            // Start embeddings' generation in a separate thread
             new Thread(() -> {
                 try {
                     processPendingEmbeddingsForDocument(fileUuid, event.getName(), userId);
