@@ -34,7 +34,7 @@ public class Embedding {
     // vector column with fixed dimension 768
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Array(length = 768)
-    @Column(name = "vector", nullable = true)
+    @Column(name = "vector")
     private float[] vector;
 
     @Column(name = "page_number")
