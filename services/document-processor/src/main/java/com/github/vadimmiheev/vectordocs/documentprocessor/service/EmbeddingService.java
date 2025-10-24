@@ -45,6 +45,8 @@ public class EmbeddingService {
     @Value("${app.topics.documents-processing:documents.processing}")
     private String documentsProcessingTopic;
 
+    private final ReentrantLock embeddingGeneratorLock = new ReentrantLock(true); // fair=true
+
     public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
             UUID fileUuid = event.getId();
@@ -122,16 +124,15 @@ public class EmbeddingService {
     }
 
     public long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
-        ReentrantLock lock = new ReentrantLock(true); // fair=true
-        lock.lock();
+        embeddingGeneratorLock.lock();
 
-        List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorBatchSize));
-        if (pending == null || pending.isEmpty()) {
-            log.info("No pending embeddings for document id={}", fileUuid);
-            lock.unlock();
-            return 0;
-        }
         try {
+            List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorBatchSize));
+            if (pending == null || pending.isEmpty()) {
+                log.info("No pending embeddings for document id={}", fileUuid);
+                return 0;
+            }
+
             // Prepare segments
             List<TextSegment> segments = new ArrayList<>(pending.size());
             for (Embedding e : pending) {
@@ -172,12 +173,13 @@ public class EmbeddingService {
                     }
                 }
             }
-            lock.unlock();
             return remaining;
         } catch (Exception e) {
             log.error("Failed to generate embeddings for document id={} due to: {}", fileUuid, e.getMessage(), e);
+        } finally {
+            embeddingGeneratorLock.unlock();
         }
-        lock.unlock();
+
         return 0;
     }
 
