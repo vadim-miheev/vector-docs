@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -121,9 +122,13 @@ public class EmbeddingService {
     }
 
     public synchronized long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
+        ReentrantLock lock = new ReentrantLock(true); // fair=true
+        lock.lock();
+
         List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorBatchSize));
         if (pending == null || pending.isEmpty()) {
             log.info("No pending embeddings for document id={}", fileUuid);
+            lock.unlock();
             return 0;
         }
         try {
@@ -167,10 +172,12 @@ public class EmbeddingService {
                     }
                 }
             }
+            lock.unlock();
             return remaining;
         } catch (Exception e) {
             log.error("Failed to generate embeddings for document id={} due to: {}", fileUuid, e.getMessage(), e);
         }
+        lock.unlock();
         return 0;
     }
 
