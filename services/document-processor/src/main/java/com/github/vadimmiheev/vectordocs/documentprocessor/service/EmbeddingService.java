@@ -1,5 +1,7 @@
 package com.github.vadimmiheev.vectordocs.documentprocessor.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentProcessingEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentUploadedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.entity.Embedding;
 import com.github.vadimmiheev.vectordocs.documentprocessor.event.EmbeddingsGeneratedEvent;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +28,17 @@ public class EmbeddingService {
     private final OpenAiEmbeddingModel embeddingModel;
     private final EmbeddingRepository embeddingRepository;
     private final ApplicationEventPublisher publisher;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.embedding.chunk-size:600}")
     private int chunkSize;
 
     @Value("${app.embedding.chunk-overlap:100}")
     private int chunkOverlap;
+
+    @Value("${app.topics.documents-processing:documents.processing}")
+    private String documentsProcessingTopic;
 
     public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
         try {
@@ -131,6 +139,24 @@ public class EmbeddingService {
             if (remaining == 0) {
                 // All embeddings generated -> publish event
                 publisher.publishEvent(new EmbeddingsGeneratedEvent(fileUuid, userId, fileName));
+            } else {
+                // Calculate progress percentage and publish processing event
+                long totalEmbeddings = embeddingRepository.countByFileUuid(fileUuid);
+                if (totalEmbeddings > 0) {
+                    int progressPercentage = (int) Math.round((double) (totalEmbeddings - remaining) / totalEmbeddings * 100);
+
+                    try {
+                        DocumentProcessingEvent processingEvent = new DocumentProcessingEvent(fileUuid, userId, fileName, progressPercentage);
+                        String payload = objectMapper.writeValueAsString(processingEvent);
+                        String key = fileUuid.toString();
+                        kafkaTemplate.send(documentsProcessingTopic, key, payload);
+                        log.debug("Published processing progress event to topic '{}' for document id={} userId={} progress={}%",
+                                documentsProcessingTopic, fileUuid, userId, progressPercentage);
+                    } catch (Exception ex) {
+                        log.error("Failed to publish processing progress event for document id={} userId={}",
+                                fileUuid, userId, ex);
+                    }
+                }
             }
         } catch (Exception e) {
             log.error("Failed to generate embeddings for document id={} due to: {}", fileUuid, e.getMessage(), e);
