@@ -34,8 +34,14 @@ public class Embedding {
     // vector column with fixed dimension 768
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Array(length = 768)
-    @Column(name = "vector")
-    private float[] vector;
+    @Column(name = "vector", nullable = false)
+    @Builder.Default
+    private float[] vector = new  float[768];
+
+    // to quickly find missing vectors
+    @Column(name = "vector_generated", nullable = false)
+    @Builder.Default
+    private Boolean vectorGenerated = false;
 
     @Column(name = "page_number")
     private Integer pageNumber; // optional

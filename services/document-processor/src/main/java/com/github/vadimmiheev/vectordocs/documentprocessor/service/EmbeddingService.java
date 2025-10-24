@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Limit;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class EmbeddingService {
 
     @Value("${app.embedding.chunk-overlap:100}")
     private int chunkOverlap;
+
+    @Value("${app.embedding.generator-batch:100}")
+    private int generatorGatchSize;
 
     @Value("${app.topics.documents-processing:documents.processing}")
     private String documentsProcessingTopic;
@@ -91,7 +95,10 @@ public class EmbeddingService {
             // Start embeddings' generation in a separate thread
             new Thread(() -> {
                 try {
-                    processPendingEmbeddingsForDocument(fileUuid, event.getName(), userId);
+                    while (true) {
+                        long remaining = processPendingEmbeddingsForDocument(fileUuid, event.getName(), userId);
+                        if (remaining == 0) break;
+                    }
                 } catch (Exception ex) {
                     log.error("Background embeddings generation failed for id={} userId={} due to: {}", fileUuid, userId, ex.getMessage(), ex);
                 }
@@ -113,11 +120,11 @@ public class EmbeddingService {
         }
     }
 
-    public synchronized void processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
-        List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorIsNull(fileUuid);
+    public synchronized long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
+        List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorGatchSize));
         if (pending == null || pending.isEmpty()) {
             log.info("No pending embeddings for document id={}", fileUuid);
-            return;
+            return 0;
         }
         try {
             // Prepare segments
@@ -128,11 +135,13 @@ public class EmbeddingService {
             // Generate vectors in batch
             List<dev.langchain4j.data.embedding.Embedding> vectors = embeddingModel.embedAll(segments).content();
             for (int i = 0; i < pending.size(); i++) {
-                pending.get(i).setVector(vectors.get(i).vector());
+                Embedding embedding = pending.get(i);
+                embedding.setVector(vectors.get(i).vector());
+                embedding.setVectorGenerated(true);
             }
             embeddingRepository.saveAll(pending);
 
-            long remaining = embeddingRepository.countByFileUuidAndVectorIsNull(fileUuid);
+            long remaining = embeddingRepository.countByFileUuidAndVectorGeneratedFalse(fileUuid);
             log.info("Generated {} vectors for document id={} userId={}, remaining {} chunks",
                     pending.size(), fileUuid, userId, remaining);
 
@@ -158,9 +167,11 @@ public class EmbeddingService {
                     }
                 }
             }
+            return remaining;
         } catch (Exception e) {
             log.error("Failed to generate embeddings for document id={} due to: {}", fileUuid, e.getMessage(), e);
         }
+        return 0;
     }
 
     public long countTotalEmbeddings(UUID fileUuid) {
@@ -170,7 +181,7 @@ public class EmbeddingService {
     @Scheduled(fixedDelayString = "${app.embedding.scheduler.delay-ms:60000}")
     public void processPendingEmbeddingsScheduled() {
         try {
-            List<Embedding> pending = embeddingRepository.findByVectorIsNull();
+            List<Embedding> pending = embeddingRepository.findByVectorGeneratedFalse();
             if (pending == null || pending.isEmpty()) {
                 return;
             }
@@ -182,7 +193,10 @@ public class EmbeddingService {
             for (Map.Entry<UUID, Embedding> entry : anyPerDoc.entrySet()) {
                 UUID fileUuid = entry.getKey();
                 Embedding e = entry.getValue();
-                processPendingEmbeddingsForDocument(fileUuid, e.getFileName(), e.getUserId());
+                while (true) {
+                    long remaining = processPendingEmbeddingsForDocument(fileUuid, e.getFileName(), e.getUserId());
+                    if (remaining == 0) break;
+                }
             }
         } catch (Exception e) {
             log.error("Scheduled processing of pending embeddings failed: {}", e.getMessage(), e);
