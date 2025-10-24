@@ -39,7 +39,7 @@ public class EmbeddingService {
     private int chunkOverlap;
 
     @Value("${app.embedding.generator-batch:100}")
-    private int generatorGatchSize;
+    private int generatorBatchSize;
 
     @Value("${app.topics.documents-processing:documents.processing}")
     private String documentsProcessingTopic;
@@ -121,7 +121,7 @@ public class EmbeddingService {
     }
 
     public synchronized long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
-        List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorGatchSize));
+        List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorBatchSize));
         if (pending == null || pending.isEmpty()) {
             log.info("No pending embeddings for document id={}", fileUuid);
             return 0;
