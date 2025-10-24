@@ -121,7 +121,7 @@ public class EmbeddingService {
         }
     }
 
-    public synchronized long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
+    public long processPendingEmbeddingsForDocument(UUID fileUuid, String fileName, String userId) {
         ReentrantLock lock = new ReentrantLock(true); // fair=true
         lock.lock();
 
