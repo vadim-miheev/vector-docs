@@ -5,7 +5,7 @@ services:
     working_dir: /app
     volumes:
       - ./frontend/react-app:/app
-    command: sh -c "npm ci && PUBLIC_URL=${FE_PREFIX} npm run build"
+    command: sh -c "npm ci && npm run build"
     restart: "no"
     user: "${UID:-1000}:${GID:-1000}"
 
@@ -19,3 +19,4 @@ services:
     volumes:
       - ./frontend/react-app/build:/usr/share/nginx/html:ro
       - ./frontend/nginx:/etc/nginx/conf.d:ro
+    user: "${UID:-1000}:${GID:-1000}"
