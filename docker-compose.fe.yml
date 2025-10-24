@@ -7,6 +7,7 @@ services:
       - ./frontend/react-app:/app
     command: sh -c "npm ci && PUBLIC_URL=${FE_PREFIX} npm run build"
     restart: "no"
+    user: "${UID:-1000}:${GID:-1000}"
 
   react-nginx:
     image: nginx:alpine
