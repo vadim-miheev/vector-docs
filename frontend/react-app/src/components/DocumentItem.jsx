@@ -24,6 +24,8 @@ function formatFileSize(bytes) {
 export default function DocumentItem({doc, onDelete}) {
     const isProcessing = doc?.processed === false;
     const deleteDisabled = isProcessing;
+    const processingProgress = doc?.processingProgress;
+
     const badgeStyle = {
         marginLeft: 8,
         fontSize: 12,
@@ -44,7 +46,11 @@ export default function DocumentItem({doc, onDelete}) {
             <div>
                 <div style={{fontWeight: 500, display: 'flex', alignItems: 'center'}}>
                     <span>{doc.name}</span>
-                    {isProcessing && <span style={badgeStyle}>in progress</span>}
+                    {isProcessing && (
+                      <span style={badgeStyle}>
+                        IN PROGRESS {processingProgress !== undefined && (<>({processingProgress}%)</>)}
+                      </span>
+                    )}
                 </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
             </div>

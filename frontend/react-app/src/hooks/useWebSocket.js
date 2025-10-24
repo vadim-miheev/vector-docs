@@ -52,6 +52,18 @@ export function useWebSocket() {
               addMessageRef.current(`Document ${payload?.name} ready for search`);
             }
           },
+          'documents.processing': () => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('documents:processing', {
+                  detail: {
+                    id: payload?.id,
+                    progressPercentage: payload?.progressPercentage
+                  }
+                })
+              );
+            }
+          },
           'chat.response': () => {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(

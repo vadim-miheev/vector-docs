@@ -35,7 +35,7 @@ export function useDocuments() {
   // Listen for the global update event (emitted by WebSocket handlers)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handler = (e) => {
+    const updateHandler = (e) => {
         setDocs((prev) => prev.map(d => {
             if (d?.id === e?.detail?.id) {
                 d.processed = true;
@@ -43,8 +43,22 @@ export function useDocuments() {
             return d;
         }));
     };
-    window.addEventListener('documents:update', handler);
-    return () => window.removeEventListener('documents:refresh', handler);
+
+    const processingHandler = (e) => {
+        setDocs((prev) => prev.map(d => {
+            if (d?.id === e?.detail?.id) {
+                d.processingProgress = e?.detail?.progressPercentage;
+            }
+            return d;
+        }));
+    };
+
+    window.addEventListener('documents:update', updateHandler);
+    window.addEventListener('documents:processing', processingHandler);
+    return () => {
+      window.removeEventListener('documents:update', updateHandler);
+      window.removeEventListener('documents:processing', processingHandler);
+    };
   }, [setDocs]);
 
   const upload = useCallback(async (file) => {
