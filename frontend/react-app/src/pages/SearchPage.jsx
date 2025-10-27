@@ -87,39 +87,42 @@ export default function SearchPage() {
   useEffect(() => {
     function onChatResponse(e) {
       const payload = e?.detail ?? e;
+      const currentId = currentRequestIDRef.current;
 
-      if (payload?.requestId === currentRequestIDRef.current) {
-        setIsSending(false)
+      if (payload?.requestId !== currentId) return;
 
-        if (payload?.complete === true) {
-          currentAgentMessageRef.current = {}
-          currentRequestIDRef.current = ''
-          return
-        }
+      setIsSending(false);
 
-        if (payload?.sources) {
-          currentAgentMessageRef.current.sources = payload?.sources
-        }
-
-        currentAgentMessageRef.current.text += payload?.token;
-        setMessages(prevState => {
-          if (prevState.filter(m => m.id === currentRequestIDRef.current).length === 0) {
-            if (currentRequestIDRef.current === '') return prevState // in case if ID was just cleared
-            return [
-              ...prevState,
-              { id: currentRequestIDRef.current, role: 'agent', text: payload?.token, sources: [] }
-            ]
-          } else {
-            const updatedMessages = [...prevState];
-            return updatedMessages.map(m => {
-              if (m.id === currentRequestIDRef.current) {
-                return currentAgentMessageRef.current;
-              }
-              return m;
-            })
-          }
-        })
+      if (payload?.complete === true) {
+        currentAgentMessageRef.current = {};
+        currentRequestIDRef.current = '';
+        return;
       }
+
+      setMessages(prev => {
+        const existing = prev.find(m => m.id === currentId);
+
+        if (!existing) {
+          currentAgentMessageRef.current = {
+            id: currentId,
+            role: 'agent',
+            text: payload?.token ?? '',
+            sources: payload?.sources ?? [],
+          };
+          return [...prev, currentAgentMessageRef.current];
+        } else {
+          const updated = prev.map(m => {
+            if (m.id !== currentId) return m;
+            return {
+              ...m,
+              text: (m.text ?? '') + (payload?.token ?? ''),
+              sources: payload?.sources ?? m.sources,
+            };
+          });
+          currentAgentMessageRef.current = updated.find(m => m.id === currentId);
+          return updated;
+        }
+      });
     }
 
     window.addEventListener('chat:response', onChatResponse);
