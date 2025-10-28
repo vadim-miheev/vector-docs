@@ -10,7 +10,7 @@ import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Limit;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Header;
@@ -59,9 +59,9 @@ public class SearchRequestListener {
             // 2) Fetch top-K similar chunks for this user
             List<Embedding> hits;
             if (request.getDocumentId() == null) {
-                hits = embeddingRepository.findTopSimilar(userId, pgVectorString, PageRequest.of(0, topK));
+                hits = embeddingRepository.findTopSimilar(userId, pgVectorString, Limit.of(topK));
             } else {
-                hits = embeddingRepository.findTopSimilarByDoc(userId, pgVectorString, request.getDocumentId(), PageRequest.of(0, topK));
+                hits = embeddingRepository.findTopSimilarByDoc(userId, pgVectorString, request.getDocumentId(), Limit.of(topK));
             }
 
             // 3) Map to processed event
