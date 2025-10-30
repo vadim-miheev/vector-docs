@@ -13,6 +13,7 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Limit;
@@ -55,51 +56,37 @@ public class EmbeddingService {
             String userId = event.getUserId();
             Instant createdAt = Instant.now();
 
-            List<Integer> pageOffsets = new ArrayList<>(); // The beginning of each page in the general text
-            StringBuilder wholeText = new StringBuilder();
+            DocumentSplitter splitter = DocumentSplitters.recursive(chunkSize, chunkOverlap);
+            List<Embedding> entities = new ArrayList<>();
 
-            for (String page : pages) {
-                pageOffsets.add(wholeText.length());
-                if (page.isEmpty()) continue;
+            // Process each page separately
+            for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
+                String pageTextWithOverlap = getPageTextWithOverlap(pages, pageIndex);
+                if (pageTextWithOverlap.isEmpty()) {
+                    continue;
+                }
 
-                /* Text normalization using a splitter algorithm
-                Prevents text updates on real splitting for correct page number calculation */
-                DocumentSplitter splitter = DocumentSplitters.recursive(page.length(), 0);
-                wholeText.append(splitter.split(Document.from(page)).getFirst().text());
+                // Split the page (with overlap) into chunks
+                Document document = Document.from(pageTextWithOverlap);
+                List<TextSegment> chunks = splitter.split(document);
+
+                // Create entities for each chunk with current page number
+                for (TextSegment chunk : chunks) {
+                    Embedding entity = Embedding.builder()
+                            .fileUuid(fileUuid)
+                            .fileName(event.getName())
+                            .userId(userId)
+                            .createdAt(createdAt)
+                            .chunkText(chunk.text())
+                            .pageNumber(pageIndex + 1) // page numbers start from 1
+                            .build();
+                    entities.add(entity);
+                }
             }
 
-            Document document = Document.from(wholeText.toString());
-            List<TextSegment> chunks = DocumentSplitters.recursive(chunkSize, chunkOverlap).split(document);
-
-            if (chunks.isEmpty()) {
+            if (entities.isEmpty()) {
                 log.warn("No text chunks produced for file id={} name='{}'", event.getId(), event.getName());
                 return 0;
-            }
-
-            List<Integer> pageNumbers = new ArrayList<>();
-            int[] offsetsArray = pageOffsets.stream().mapToInt(i -> i).toArray();
-
-            int currentPage = 0;
-            for (TextSegment chunk : chunks) {
-                int chunkStart = wholeText.indexOf(chunk.text());
-                while (currentPage + 1 < offsetsArray.length && chunkStart >= offsetsArray[currentPage + 1]) {
-                    currentPage++;
-                }
-                pageNumbers.add(currentPage + 1);
-            }
-
-            // Persist chunks only (vectors are null for now)
-            List<Embedding> entities = new ArrayList<>(chunks.size());
-            for (int i = 0; i < chunks.size(); i++) {
-                Embedding entity = Embedding.builder()
-                        .fileUuid(fileUuid)
-                        .fileName(event.getName())
-                        .userId(userId)
-                        .createdAt(createdAt)
-                        .chunkText(chunks.get(i).text())
-                        .pageNumber(pageNumbers.get(i))
-                        .build();
-                entities.add(entity);
             }
 
             embeddingRepository.saveAll(entities);
@@ -122,6 +109,43 @@ public class EmbeddingService {
             log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
         }
         return 0;
+    }
+
+    @NotNull
+    private String getPageTextWithOverlap(ArrayList<String> pages, int pageIndex) {
+        String pageText = pages.get(pageIndex);
+
+        if (pageText.isEmpty()) return "";
+
+        // Build text with overlap from neighboring pages
+        StringBuilder textWithOverlap = new StringBuilder();
+
+        // Add overlap from previous page
+        if (pageIndex > 0) {
+            String prevPage = pages.get(pageIndex - 1);
+            if (!prevPage.isEmpty() && prevPage.length() > chunkOverlap) {
+                // Take last chunkOverlap characters from previous page
+                textWithOverlap.append(prevPage.substring(prevPage.length() - chunkOverlap));
+            } else if (!prevPage.isEmpty()) {
+                textWithOverlap.append(prevPage);
+            }
+        }
+
+        // Add current page text
+        textWithOverlap.append(pageText);
+
+        // Add overlap from next page
+        if (pageIndex < pages.size() - 1) {
+            String nextPage = pages.get(pageIndex + 1);
+            if (!nextPage.isEmpty() && nextPage.length() > chunkOverlap) {
+                // Take first chunkOverlap characters from next page
+                textWithOverlap.append(nextPage, 0, chunkOverlap);
+            } else if (!nextPage.isEmpty()) {
+                textWithOverlap.append(nextPage);
+            }
+        }
+
+        return textWithOverlap.toString();
     }
 
     public void deleteEmbeddingsByDocumentId(UUID documentId) {
