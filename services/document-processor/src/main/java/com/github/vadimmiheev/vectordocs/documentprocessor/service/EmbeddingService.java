@@ -20,6 +20,7 @@ import org.springframework.data.domain.Limit;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -50,65 +51,67 @@ public class EmbeddingService {
 
     private final ReentrantLock embeddingGeneratorLock = new ReentrantLock(true); // fair=true
 
+    @Transactional(rollbackFor = Exception.class)
     public int generateAndSaveEmbeddings(DocumentUploadedEvent event, ArrayList<String> pages) {
-        try {
-            UUID fileUuid = event.getId();
-            String userId = event.getUserId();
-            Instant createdAt = Instant.now();
+        UUID fileUuid = event.getId();
+        String userId = event.getUserId();
+        String fileName = event.getName();
+        Instant createdAt = Instant.now();
 
-            DocumentSplitter splitter = DocumentSplitters.recursive(chunkSize, chunkOverlap);
-            List<Embedding> entities = new ArrayList<>();
+        DocumentSplitter splitter = DocumentSplitters.recursive(chunkSize, chunkOverlap);
+        List<Embedding> entities = new ArrayList<>();
 
-            // Process each page separately
-            for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
-                String pageTextWithOverlap = getPageTextWithOverlap(pages, pageIndex);
-                if (pageTextWithOverlap.isEmpty()) {
-                    continue;
-                }
-
-                // Split the page (with overlap) into chunks
-                Document document = Document.from(pageTextWithOverlap);
-                List<TextSegment> chunks = splitter.split(document);
-
-                // Create entities for each chunk with current page number
-                for (TextSegment chunk : chunks) {
-                    Embedding entity = Embedding.builder()
-                            .fileUuid(fileUuid)
-                            .fileName(event.getName())
-                            .userId(userId)
-                            .createdAt(createdAt)
-                            .chunkText(chunk.text())
-                            .pageNumber(pageIndex + 1) // page numbers start from 1
-                            .build();
-                    entities.add(entity);
-                }
+        // Process each page separately
+        for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
+            String pageTextWithOverlap = getPageTextWithOverlap(pages, pageIndex);
+            if (pageTextWithOverlap.isEmpty()) {
+                continue;
             }
 
-            if (entities.isEmpty()) {
-                log.warn("No text chunks produced for file id={} name='{}'", event.getId(), event.getName());
-                return 0;
+            // Split the page (with overlap) into chunks
+            Document document = Document.from(pageTextWithOverlap);
+            List<TextSegment> chunks = splitter.split(document);
+
+            // Create entities for each chunk with current page number
+            for (TextSegment chunk : chunks) {
+                Embedding entity = Embedding.builder()
+                        .fileUuid(fileUuid)
+                        .fileName(fileName)
+                        .userId(userId)
+                        .createdAt(createdAt)
+                        .chunkText(chunk.text())
+                        .pageNumber(pageIndex + 1) // page numbers start from 1
+                        .build();
+                entities.add(entity);
             }
-
-            embeddingRepository.saveAll(entities);
-            log.info("Saved {} text chunks for document id={} userId={}", entities.size(), fileUuid, userId);
-
-            // Start embeddings' generation in a separate thread
-            new Thread(() -> {
-                try {
-                    while (true) {
-                        long remaining = processPendingEmbeddingsForDocument(fileUuid, event.getName(), userId);
-                        if (remaining == 0) break;
-                    }
-                } catch (Exception ex) {
-                    log.error("Background embeddings generation failed for id={} userId={} due to: {}", fileUuid, userId, ex.getMessage(), ex);
-                }
-            }, "embeddings-generator-" + fileUuid).start();
-
-            return entities.size();
-        } catch (Exception e) {
-            log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
         }
-        return 0;
+
+        if (entities.isEmpty()) {
+            log.warn("No text chunks produced for file id={} name='{}'", fileUuid, fileName);
+            return 0;
+        }
+
+        embeddingRepository.saveAll(entities);
+        log.info("Saved {} text chunks for document id={} userId={}", entities.size(), fileUuid, userId);
+        return entities.size();
+    }
+
+    public void backgroundProcessingOfAllPending(DocumentUploadedEvent event) {
+        UUID fileUuid = event.getId();
+        String fileName = event.getName();
+        String userId = event.getUserId();
+
+        // Start embeddings' generation in a separate thread
+        new Thread(() -> {
+            try {
+                while (true) {
+                    long remaining = processPendingEmbeddingsForDocument(fileUuid, fileName, userId);
+                    if (remaining == 0) break;
+                }
+            } catch (Exception ex) {
+                log.error("Background embeddings generation failed for id={} userId={} due to: {}", fileUuid, userId, ex.getMessage(), ex);
+            }
+        }, "embeddings-generator-" + fileUuid).start();
     }
 
     @NotNull

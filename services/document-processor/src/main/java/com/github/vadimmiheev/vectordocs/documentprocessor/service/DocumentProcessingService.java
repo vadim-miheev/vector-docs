@@ -31,11 +31,16 @@ public class DocumentProcessingService {
         try {
             byte[] bytes = downloadService.download(event.getDownloadUrl(), event.getUserId());
             ArrayList<String> pages = textExtractionService.extractText(bytes, event.getContentType(), event.getName());
-            // Persist chunks
-            int chunksCount = embeddingService.generateAndSaveEmbeddings(event, pages);
-
-            log.info("Processed document id={} name='{}' size={} bytes. Pages processed: {}. Chunks: {}",
-                    event.getId(), event.getName(), event.getSize(), pages.size(), chunksCount);
+            try {
+                // Persist chunks (transactional)
+                int chunksCount = embeddingService.generateAndSaveEmbeddings(event, pages);
+                // New chunks processing
+                if (chunksCount > 0) embeddingService.backgroundProcessingOfAllPending(event);
+                log.info("Processed document id={} name='{}' size={} bytes. Pages processed: {}. Chunks: {}",
+                        event.getId(), event.getName(), event.getSize(), pages.size(), chunksCount);
+            } catch (Exception e) {
+                log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
+            }
         } catch (Exception e) {
             log.error("Failed to process uploaded document id={} name='{}' due to: {}",
                     event.getId(), event.getName(), e.getMessage(), e);
