@@ -100,10 +100,10 @@ public class DocumentStorageService {
             log.error("Failed to delete file {}", doc.getPath(), e);
             return 0;
         }
-        long deleted = documentRepository.deleteByIdAndUserId(id, userId);
+        long deleted = documentRepository.deleteByIdAndUserId(doc.getId(), doc.getUserId());
         if (deleted > 0) {
             // Publish domain event to be handled after transaction commit
-            eventPublisher.publishEvent(new DocumentDeletedEvent(doc.getId(), userId));
+            eventPublisher.publishEvent(new DocumentDeletedEvent(doc.getId(), doc.getUserId()));
         }
         return deleted;
     }
