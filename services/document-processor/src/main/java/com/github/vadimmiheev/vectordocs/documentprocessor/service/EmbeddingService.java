@@ -6,7 +6,9 @@ import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentUploadedE
 import com.github.vadimmiheev.vectordocs.documentprocessor.entity.Embedding;
 import com.github.vadimmiheev.vectordocs.documentprocessor.event.EmbeddingsGeneratedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.repository.EmbeddingRepository;
-import com.github.vadimmiheev.vectordocs.documentprocessor.util.TextChunker;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -55,12 +57,20 @@ public class EmbeddingService {
 
             List<Integer> pageOffsets = new ArrayList<>(); // The beginning of each page in the general text
             StringBuilder wholeText = new StringBuilder();
+
             for (String page : pages) {
                 pageOffsets.add(wholeText.length());
-                wholeText.append(page);
+                if (page.isEmpty()) continue;
+
+                /* Text normalization using a splitter algorithm
+                Prevents text updates on real splitting for correct page number calculation */
+                DocumentSplitter splitter = DocumentSplitters.recursive(page.length(), 0);
+                wholeText.append(splitter.split(Document.from(page)).getFirst().text());
             }
 
-            List<String> chunks = TextChunker.split(wholeText.toString(), chunkSize, chunkOverlap);
+            Document document = Document.from(wholeText.toString());
+            List<TextSegment> chunks = DocumentSplitters.recursive(chunkSize, chunkOverlap).split(document);
+
             if (chunks.isEmpty()) {
                 log.warn("No text chunks produced for file id={} name='{}'", event.getId(), event.getName());
                 return 0;
@@ -70,8 +80,8 @@ public class EmbeddingService {
             int[] offsetsArray = pageOffsets.stream().mapToInt(i -> i).toArray();
 
             int currentPage = 0;
-            for (String chunk : chunks) {
-                int chunkStart = wholeText.indexOf(chunk);
+            for (TextSegment chunk : chunks) {
+                int chunkStart = wholeText.indexOf(chunk.text());
                 while (currentPage + 1 < offsetsArray.length && chunkStart >= offsetsArray[currentPage + 1]) {
                     currentPage++;
                 }
@@ -86,7 +96,7 @@ public class EmbeddingService {
                         .fileName(event.getName())
                         .userId(userId)
                         .createdAt(createdAt)
-                        .chunkText(chunks.get(i))
+                        .chunkText(chunks.get(i).text())
                         .pageNumber(pageNumbers.get(i))
                         .build();
                 entities.add(entity);
