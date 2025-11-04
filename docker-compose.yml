@@ -15,6 +15,7 @@ services:
       SPRING_DATASOURCE_USER: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
       UI_HOST: ${UI_HOST:-http://localhost:3000}
     command: ["java", "-jar", "/app/gateway.jar"]
     volumes:
