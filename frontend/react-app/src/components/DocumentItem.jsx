@@ -22,8 +22,6 @@ function formatFileSize(bytes) {
 }
 
 export default function DocumentItem({doc, onDelete}) {
-    const isProcessing = doc?.processed === false;
-    const deleteDisabled = isProcessing;
     const processingProgress = doc?.processingProgress;
 
     const badgeStyle = {
@@ -46,9 +44,10 @@ export default function DocumentItem({doc, onDelete}) {
             <div>
                 <div style={{fontWeight: 500, display: 'flex', alignItems: 'center'}}>
                     <span>{doc.name}</span>
-                    {isProcessing && (
+                    {doc?.status !== 'processed' && (
                       <span style={badgeStyle}>
-                        IN PROGRESS {processingProgress !== undefined && (<>({processingProgress}%)</>)}
+                        PROCESSING
+                        {processingProgress !== undefined && (<>({processingProgress}%)</>)}
                       </span>
                     )}
                 </div>
@@ -66,11 +65,10 @@ export default function DocumentItem({doc, onDelete}) {
                 </Link>
                 <button
                     onClick={() => onDelete?.(doc.id)}
-                    disabled={deleteDisabled}
                     className={"hover:underline"}
                     style={{
-                        color: deleteDisabled ? '#aaa' : '#b00',
-                        cursor: deleteDisabled ? 'not-allowed' : 'pointer'
+                        color: '#b00',
+                        cursor: 'pointer'
                     }}
                 >
                     Delete

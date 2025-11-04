@@ -9,6 +9,7 @@ export function useDocuments() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
   const { logout } = useAuth();
 
   const refresh = useCallback(async () => {
@@ -35,10 +36,10 @@ export function useDocuments() {
   // Listen for the global update event (emitted by WebSocket handlers)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const updateHandler = (e) => {
+    const statusUpdateHandler = (e) => {
         setDocs((prev) => prev.map(d => {
-            if (d?.id === e?.detail?.id) {
-                d.processed = true;
+            if (d?.id === e?.detail?.id && e?.detail?.status) {
+                d.status = e?.detail?.status;
             }
             return d;
         }));
@@ -53,18 +54,31 @@ export function useDocuments() {
         }));
     };
 
-    window.addEventListener('documents:update', updateHandler);
+    const processingErrorHandler = (e) => {
+      setDocs((prev) => prev.filter(d => d.id !== e?.detail?.id));
+    };
+
+    window.addEventListener('documents:uploaded', statusUpdateHandler);
+    window.addEventListener('documents:processed', statusUpdateHandler);
     window.addEventListener('documents:processing', processingHandler);
+    window.addEventListener('documents:processing:error', processingErrorHandler);
     return () => {
-      window.removeEventListener('documents:update', updateHandler);
+      window.removeEventListener('documents:uploaded', statusUpdateHandler);
+      window.removeEventListener('documents:processed', statusUpdateHandler);
       window.removeEventListener('documents:processing', processingHandler);
+      window.removeEventListener('documents:processing:error', processingErrorHandler);
     };
   }, [setDocs]);
 
   const upload = useCallback(async (file) => {
-    const created = await documentsService.upload(file);
-    setDocs((prev) => [created, ...prev]);
-    return created;
+    setUploading(true);
+    try {
+      const created = await documentsService.upload(file);
+      setDocs((prev) => [created, ...prev]);
+      return created;
+    } finally {
+      setUploading(false);
+    }
   }, [userId]);
 
   const remove = useCallback(async (id) => {
@@ -72,5 +86,5 @@ export function useDocuments() {
     setDocs((prev) => prev.filter((d) => d.id !== id));
   }, [userId]);
 
-  return { docs, loading, error, refresh, upload, remove };
+  return { docs, loading, error, uploading, refresh, upload, remove };
 }

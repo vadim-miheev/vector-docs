@@ -44,10 +44,18 @@ export function useWebSocket() {
         const eventName = typeof payload === 'object' && payload ? payload.event : undefined;
 
         const handlers = {
+          'documents.uploaded': () => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('documents:uploaded', { detail: { id: payload?.id, status: 'uploaded' } })
+              );
+              addMessageRef.current(`Processing of the document ${payload?.name} has begun. This may take a while`);
+            }
+          },
           'documents.processed': () => {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(
-                new CustomEvent('documents:update', { detail: { id: payload?.id } })
+                new CustomEvent('documents:processed', { detail: { id: payload?.id, status: 'processed' } })
               );
               addMessageRef.current(`Document ${payload?.name} ready for search`);
             }
@@ -62,6 +70,16 @@ export function useWebSocket() {
                   }
                 })
               );
+            }
+          },
+          'documents.processing.error': () => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('documents:processing:error', {
+                  detail: { id: payload?.id }
+                })
+              );
+              payload?.error && addMessageRef.current(payload?.error);
             }
           },
           'chat.response': () => {
