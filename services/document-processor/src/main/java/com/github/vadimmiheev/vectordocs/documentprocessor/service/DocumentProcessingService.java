@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentProcessedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentUploadedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.event.EmbeddingsGeneratedEvent;
+import com.github.vadimmiheev.vectordocs.documentprocessor.util.DocumentsStatusStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,32 +35,35 @@ public class DocumentProcessingService {
     public void process(DocumentUploadedEvent event) {
         try {
             byte[] bytes = downloadService.download(event.getDownloadUrl(), event.getUserId());
+
+            if (DocumentsStatusStore.isCancelled(event.getId().toString())) return; // checking whether the user deleted the document
             ArrayList<String> pages = textExtractionService.extractText(bytes, event.getContentType(), event.getName());
-            try {
-                // Persist chunks (transactional)
-                int chunksCount = embeddingService.generateAndSaveEmbeddings(event, pages);
-                // New chunks processing
-                if (chunksCount > 0) embeddingService.backgroundProcessingOfAllPending(event);
-                log.info("Processed document id={} name='{}' size={} bytes. Pages processed: {}. Chunks: {}",
-                        event.getId(), event.getName(), event.getSize(), pages.size(), chunksCount);
-            } catch (Exception e) {
-                try {
-                    String key = event.getId().toString();
-                    Map<String, Object> errorEvent = Map.of(
-                            "id", event.getId(),
-                            "userId", event.getUserId(),
-                            "name", event.getName(),
-                            "error", e.getMessage()
-                    );
-                    String payload = objectMapper.writeValueAsString(errorEvent);
-                    kafkaTemplate.send(documentsProcessingErrorTopic, key, payload);
-                } catch (Exception ex) {
-                    log.error("Failed to publish '{}' event for document id={} userId={}",
-                            documentsProcessingErrorTopic, event.getId(), event.getUserId(), ex);
-                }
-                log.error("Failed generating/saving embeddings for id={} due to: {}", event.getId(), e.getMessage(), e);
+
+            // Persist chunks (transactional)
+            int chunksCount = embeddingService.generateAndSaveEmbeddings(event, pages);
+            // New chunks processing
+            if (chunksCount > 0) {
+                embeddingService.backgroundProcessingOfAllPending(event);
+            } else {
+                publishDocumentProcessedEvent(new EmbeddingsGeneratedEvent(event.getId(), event.getUserId(), event.getName()));
             }
+            log.info("Processed document id={} name='{}' size={} bytes. Pages processed: {}. Chunks: {}",
+                    event.getId(), event.getName(), event.getSize(), pages.size(), chunksCount);
         } catch (Exception e) {
+            try {
+                String key = event.getId().toString();
+                Map<String, Object> errorEvent = Map.of(
+                        "id", event.getId(),
+                        "userId", event.getUserId(),
+                        "name", event.getName(),
+                        "error", e.getMessage()
+                );
+                String payload = objectMapper.writeValueAsString(errorEvent);
+                kafkaTemplate.send(documentsProcessingErrorTopic, key, payload);
+            } catch (Exception ex) {
+                log.error("Failed to publish '{}' event for document id={} userId={}",
+                        documentsProcessingErrorTopic, event.getId(), event.getUserId(), ex);
+            }
             log.error("Failed to process uploaded document id={} name='{}' due to: {}",
                     event.getId(), event.getName(), e.getMessage(), e);
         }

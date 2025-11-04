@@ -6,6 +6,7 @@ import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentUploadedE
 import com.github.vadimmiheev.vectordocs.documentprocessor.entity.Embedding;
 import com.github.vadimmiheev.vectordocs.documentprocessor.event.EmbeddingsGeneratedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.repository.EmbeddingRepository;
+import com.github.vadimmiheev.vectordocs.documentprocessor.util.DocumentsStatusStore;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
@@ -63,6 +64,10 @@ public class EmbeddingService {
 
         // Process each page separately
         for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
+            if (DocumentsStatusStore.isCancelled(event.getId().toString())) {
+                throw new IllegalStateException("Document processing cancelled");
+            }
+
             String pageTextWithOverlap = getPageTextWithOverlap(pages, pageIndex);
             if (pageTextWithOverlap.isEmpty()) {
                 continue;
@@ -164,6 +169,8 @@ public class EmbeddingService {
         embeddingGeneratorLock.lock();
 
         try {
+            if (DocumentsStatusStore.isCancelled(fileUuid.toString())) return 0; // if file deleted
+
             List<Embedding> pending = embeddingRepository.findByFileUuidAndVectorGenerated(fileUuid, false, Limit.of(generatorBatchSize));
             if (pending == null || pending.isEmpty()) {
                 log.info("No pending embeddings for document id={}", fileUuid);
