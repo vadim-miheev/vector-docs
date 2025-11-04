@@ -16,7 +16,7 @@ public class JwtService {
     private final long ttlSeconds;
 
     public JwtService(
-            @Value("${app.jwt.secret:dev-secret}") String secret,
+            @Value("${app.jwt.secret:secret}") String secret,
             @Value("${app.jwt.ttl-seconds:86400}") long ttlSeconds
     ) {
         this.algorithm = Algorithm.HMAC256(secret);
