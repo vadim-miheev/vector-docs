@@ -34,7 +34,7 @@ public class Document {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "processed")
-    private boolean processed;
+    @Column(name = "status")
+    private String status = "new";
 
 }

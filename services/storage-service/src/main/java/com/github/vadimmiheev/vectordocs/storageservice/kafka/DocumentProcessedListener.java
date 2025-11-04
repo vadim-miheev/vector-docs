@@ -10,6 +10,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -41,8 +43,8 @@ public class DocumentProcessedListener {
 
             final String docId = id;
             documentRepository.findById(docId).ifPresentOrElse(doc -> {
-                if (!doc.isProcessed()) {
-                    doc.setProcessed(true);
+                if (!Objects.equals(doc.getStatus(), "processed")) {
+                    doc.setStatus("processed");
                     documentRepository.save(doc);
                     log.info("Marked document id={} as processed", docId);
                 } else {

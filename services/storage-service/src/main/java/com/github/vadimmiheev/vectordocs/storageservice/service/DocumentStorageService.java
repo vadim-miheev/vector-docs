@@ -4,7 +4,6 @@ import com.github.vadimmiheev.vectordocs.storageservice.dto.DocumentResponse;
 import com.github.vadimmiheev.vectordocs.storageservice.entity.Document;
 import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentDeletedEvent;
 import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentUploadedEvent;
-import com.github.vadimmiheev.vectordocs.storageservice.exception.FileNotReadyException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
@@ -64,6 +63,7 @@ public class DocumentStorageService {
             doc.setContentType(contentType);
             doc.setPath(userDir.resolve(id).toString());
             doc.setCreatedAt(Instant.now());
+            doc.setStatus("uploaded");
 
             documentRepository.save(doc);
 
@@ -86,11 +86,6 @@ public class DocumentStorageService {
     public long delete(String userId, String id) {
         Document doc = documentRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
-
-        // Waiting for processing for the correct removal of embeddings
-        if (!doc.isProcessed()) {
-            throw new FileNotReadyException("The file cannot be deleted because it is still being processed");
-        }
 
         // Delete a file if exists
         try {
@@ -149,7 +144,7 @@ public class DocumentStorageService {
                 d.getContentType(),
                 d.getCreatedAt(),
                 generateDownloadUrl(d, true),
-                d.isProcessed()
+                d.getStatus()
         );
     }
 
