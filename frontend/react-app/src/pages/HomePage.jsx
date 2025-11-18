@@ -57,7 +57,7 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <Link to="/login" className="px-4 py-2 rounded border border-black bg-gray-100 hover:bg-gray-200">Login</Link>
+            <Link to="/login" className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">Login</Link>
             <Link to="/register" className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">Register</Link>
           </>
         )}
