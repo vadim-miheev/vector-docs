@@ -57,7 +57,12 @@ export default function LoginPage() {
         <button className={"border border-black rounded-md py-1 bg-gray-100"} type="submit">Log in</button>
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </form>
-      <p>No account? <Link className={"underline"} to="/register">Register</Link></p>
+      <div className={"flex flex-col items-center gap-2"}>
+        <p>No account? <Link className={"underline"} to="/register">Register</Link></p>
+        <p>
+          <Link className={"underline"} to="/password-reset">Reset password</Link>
+        </p>
+      </div>
     </div>
   );
 }

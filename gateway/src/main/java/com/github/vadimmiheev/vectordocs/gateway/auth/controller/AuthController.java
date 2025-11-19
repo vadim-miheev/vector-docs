@@ -35,6 +35,12 @@ public class AuthController {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
+    @PostMapping("/password-reset-request")
+    public Mono<MessageResponse> passwordResetRequest(@Valid @RequestBody RegisterRequest request) {
+        return Mono.fromCallable(() -> authService.requestPasswordReset(request.getEmail()))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
     @PostMapping("/login")
     public Mono<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return Mono.fromCallable(() -> authService.login(request))

@@ -3,6 +3,7 @@ import {BrowserRouter, Routes, Route, Link, Navigate, NavLink} from 'react-route
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import PasswordSetupPage from '../pages/PasswordSetupPage';
+import PasswordResetRequestPage from '../pages/PasswordResetRequestPage';
 import DocumentsPage from '../pages/DocumentsPage';
 import SearchPage from '../pages/SearchPage';
 import HomePage from '../pages/HomePage';
@@ -83,6 +84,7 @@ export default function AppRouter() {
           <Route path="/" element={<HomePage/>}/>
           <Route path="/login" element={<LoginPage/>}/>
           <Route path="/register" element={<RegisterPage/>}/>
+          <Route path="/password-reset" element={<PasswordResetRequestPage/>}/>
           <Route path="/password-setup" element={<PasswordSetupPage/>}/>
           <Route path="/documents" element={<RequireAuth><DocumentsPage/></RequireAuth>}/>
           <Route path="/search" element={<RequireAuth><SearchPage/></RequireAuth>}/>

@@ -39,5 +39,12 @@ export const authService = {
     } catch (e) {
       try { return JSON.parse(e.message); } catch (_) { return { error: e.message }; }
     }
+  },
+  async passwordResetRequest({ email }) {
+    try {
+      return await apiClient.post(ENDPOINTS.passwordResetRequest, { email }); // { message }
+    } catch (e) {
+      try { return JSON.parse(e.message); } catch (_) { return { error: e.message }; }
+    }
   }
 };
