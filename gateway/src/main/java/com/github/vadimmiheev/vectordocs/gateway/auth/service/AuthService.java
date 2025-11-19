@@ -112,8 +112,11 @@ public class AuthService {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user != null) {
             String subject = "Password reset";
-            String textPrefix = "Hello,\n\nWe received a request to reset your password. " +
-                    "You can set a new password using this link: ";
+            String textPrefix = """
+                    Hello,
+                    
+                    We received a request to reset your password. \
+                    You can set a new password using this link:\s""";
             createPasswordSetupTokenAndSendMail(user, subject, textPrefix);
         }
 
