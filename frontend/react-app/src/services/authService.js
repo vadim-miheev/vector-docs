@@ -23,19 +23,21 @@ export const authService = {
       }
       return res;
     } catch (e) {
-      return JSON.parse(e.message);
+      try { return JSON.parse(e.message); } catch (_) { return { error: e.message }; }
     }
   },
-  async register({ email, password }) {
+  async register({ email }) {
     try {
-      const res = await apiClient.post(ENDPOINTS.register, { email, password });
-      if (res && res.token) setTokenCookie(res.token);
-      if (res && (res.id !== undefined || res.email !== undefined)) {
-        return { id: res.id, email: res.email };
-      }
-      return res;
+      return await apiClient.post(ENDPOINTS.register, {email}); // { message }
     } catch (e) {
-      return JSON.parse(e.message);
+      try { return JSON.parse(e.message); } catch (_) { return { error: e.message }; }
     }
   },
+  async passwordSetup({ token, password }) {
+    try {
+      return await apiClient.post(ENDPOINTS.passwordSetup, {token, password}); // { message }
+    } catch (e) {
+      try { return JSON.parse(e.message); } catch (_) { return { error: e.message }; }
+    }
+  }
 };

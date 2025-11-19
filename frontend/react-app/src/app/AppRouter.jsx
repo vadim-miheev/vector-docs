@@ -2,6 +2,7 @@ import React from 'react';
 import {BrowserRouter, Routes, Route, Link, Navigate, NavLink} from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import PasswordSetupPage from '../pages/PasswordSetupPage';
 import DocumentsPage from '../pages/DocumentsPage';
 import SearchPage from '../pages/SearchPage';
 import HomePage from '../pages/HomePage';
@@ -82,6 +83,7 @@ export default function AppRouter() {
           <Route path="/" element={<HomePage/>}/>
           <Route path="/login" element={<LoginPage/>}/>
           <Route path="/register" element={<RegisterPage/>}/>
+          <Route path="/password-setup" element={<PasswordSetupPage/>}/>
           <Route path="/documents" element={<RequireAuth><DocumentsPage/></RequireAuth>}/>
           <Route path="/search" element={<RequireAuth><SearchPage/></RequireAuth>}/>
           <Route path="/search/:documentId" element={<RequireAuth><SearchPage/></RequireAuth>}/>

@@ -2,6 +2,8 @@ package com.github.vadimmiheev.vectordocs.gateway.auth.controller;
 
 import com.github.vadimmiheev.vectordocs.gateway.auth.dto.AuthResponse;
 import com.github.vadimmiheev.vectordocs.gateway.auth.dto.LoginRequest;
+import com.github.vadimmiheev.vectordocs.gateway.auth.dto.MessageResponse;
+import com.github.vadimmiheev.vectordocs.gateway.auth.dto.PasswordSetupRequest;
 import com.github.vadimmiheev.vectordocs.gateway.auth.dto.RegisterRequest;
 import com.github.vadimmiheev.vectordocs.gateway.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -22,8 +24,14 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public Mono<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         return Mono.fromCallable(() -> authService.register(request))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @PostMapping("/password-setup")
+    public Mono<MessageResponse> passwordSetup(@Valid @RequestBody PasswordSetupRequest request) {
+        return Mono.fromCallable(() -> authService.completePasswordSetup(request))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 

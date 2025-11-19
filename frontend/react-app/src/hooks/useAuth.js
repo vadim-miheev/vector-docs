@@ -23,15 +23,15 @@ export function useAuth() {
     return u;
   }, [setUser, addMessage]);
 
-  const register = useCallback(async (email, password) => {
-    const u = await authService.register({ email, password });
-    if (u.error !== undefined) {
-      addMessage(u.error);
+  const register = useCallback(async (email) => {
+    const res = await authService.register({ email });
+    if (res.error !== undefined) {
+      addMessage(res.error);
       return null;
     }
-    setUser(u);
-    return u;
-  }, [setUser, addMessage]);
+    addMessage(res.message || 'Please check your email to complete registration');
+    return res;
+  }, [addMessage]);
 
   const logout = useCallback(() => {
     clearTokenCookie();

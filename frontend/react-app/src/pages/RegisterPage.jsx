@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function RegisterPage() {
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
     setError('');
+    setSuccess('');
     const emailTrimmed = String(email || '').trim();
-    const passwordTrimmed = String(password || '').trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailTrimmed || !passwordTrimmed) {
-      setError('Email and password are required');
+    if (!emailTrimmed) {
+      setError('Email is required');
       return;
     }
     if (!emailRegex.test(emailTrimmed)) {
@@ -24,12 +24,15 @@ export default function RegisterPage() {
       return;
     }
     try {
-      const result = await register(emailTrimmed, passwordTrimmed);
-        if (result !== null) {
-            navigate('/documents');
-        }
+      setSubmitting(true);
+      const res = await register(emailTrimmed);
+      if (res !== null) {
+        setSuccess('We\'ve sent you an email with a link to set your password.');
+      }
     } catch (e) {
       setError(e.message || 'Registration failed');
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -44,17 +47,13 @@ export default function RegisterPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={submitting}
         />
-        <input
-          className={"border border-black rounded-md px-2 py-1"}
-          placeholder="Password"
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className={"border border-black rounded-md py-1 bg-gray-100"} type="submit">Create account</button>
+        <button className={"border border-black rounded-md py-1 bg-gray-100"} type="submit" disabled={submitting}>
+          {submitting ? 'Submitting...' : 'Create account'}
+        </button>
         {error && <div style={{ color: 'red' }}>{error}</div>}
+        {success && <div style={{ color: 'green' }}>{success}</div>}
       </form>
       <p>Already have an account? <Link className={"underline"} to="/login">Log in</Link></p>
     </div>

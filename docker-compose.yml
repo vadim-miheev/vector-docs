@@ -17,6 +17,13 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_TTL_SECONDS: ${JWT_TTL_SECONDS}
       UI_HOST: ${UI_HOST:-http://localhost:3000}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH}
+      SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE}
+      SITE_ROOT: ${SITE_ROOT}
     command: ["java", "-jar", "/app/gateway.jar"]
     volumes:
       - ./gateway/build/libs/:/app
