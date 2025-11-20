@@ -1,5 +1,6 @@
 services:
   react-build:
+    profiles: ["prod"]
     image: node:22.18
     container_name: react-build
     working_dir: /app
@@ -10,6 +11,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
 
   react-nginx:
+    profiles: ["prod"]
     image: nginx:alpine
     container_name: react-nginx
     restart: unless-stopped
@@ -19,4 +21,3 @@ services:
     volumes:
       - ./frontend/react-app/build:/usr/share/nginx/html:ro
       - ./frontend/nginx:/etc/nginx/conf.d:ro
-    user: "${UID:-1000}:${GID:-1000}"

@@ -50,6 +50,9 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
       TESSDATA_LANG: ${TESSDATA_LANG:-eng}
+    #  JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    #ports:
+    #  - "5005:5005"
     command: ["java", "-jar", "/app/document-processor.jar"]
     volumes:
       - ./services/document-processor/build/libs/:/app
