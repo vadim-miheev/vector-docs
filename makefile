@@ -1,4 +1,4 @@
-.PHONY: gradle-bootjar gradle-bootjar-once db-migration build-dev build-prod start-prod stop
+.PHONY: gradle-bootjar gradle-bootjar-once db-migration dev-build dev-start prod-start prod-restart stop
 
 # Docker compose vars
 export UID := $(shell id -u)
@@ -18,51 +18,49 @@ gradle-bootjar:
 gradle-bootjar-once:
 	docker compose run --rm gradle gradle bootJar --no-daemon
 
-build-dev: gradle-bootjar db-migration
+# Cleans the project build artifacts
+gradle-clean:
+	docker compose run --rm gradle gradle clean --no-daemon
 
-build-prod: gradle-bootjar-once db-migration
-
-#Builds the project and starts the infrastructure
-start-prod: build-prod
-	docker compose --profile prod up -d --build
+dev-build: gradle-bootjar db-migration
 
 # Java services rebuilding
-rebuild-dev: build-dev
+dev-start: dev-build
 	# services restarting
 	docker compose restart gateway notification-service answer-generator search-service storage-service document-processor
 	# up all stopped
 	docker compose up -d --build
 
+#Builds the project and starts the infrastructure
+prod-start: gradle-bootjar-once db-migration
+	docker compose --profile prod up -d --build
+
+prod-restart: stop prod-start
+
 stop:
 	docker compose down gradle-daemon
 	docker compose --profile prod down
 
-rebuild-prod: stop start-prod
-
-# Cleans the project build artifacts
-gradle-clean:
-	docker compose run --rm gradle gradle clean --no-daemon
-
-dp-rebuild: build-dev
+rebuild-dp: dev-build
 	docker compose up document-processor -d --build
 	docker compose restart document-processor
 
-storage-rebuild: build-dev
+rebuild-storage: dev-build
 	docker compose up storage-service -d --build
 	docker compose restart storage-service
 
-search-rebuild: build-dev
+rebuild-search: dev-build
 	docker compose up search-service -d --build
 	docker compose restart search-service
 
-ag-rebuild: build-dev
+rebuild-ag: dev-build
 	docker compose up answer-generator -d --build
 	docker compose restart answer-generator
 
-ns-rebuild: build-dev
+rebuild-ns: dev-build
 	docker compose up notification-service -d --build
 	docker compose restart notification-service
 
-gateway-rebuild: build-dev
+rebuild-gateway: dev-build
 	docker compose up gateway -d --build
 	docker compose restart gateway
