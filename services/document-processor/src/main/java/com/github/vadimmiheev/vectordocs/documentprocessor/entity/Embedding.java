@@ -10,7 +10,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "embeddings")
+@Table(
+    name = "embeddings",
+    indexes = {
+        @Index(name = "idx_emb_file_uuid", columnList = "file_uuid"),
+        @Index(name = "idx_emb_vector_generated", columnList = "vector_generated"),
+        @Index(name = "idx_emb_file_uuid_vector_generated", columnList = "file_uuid, vector_generated")
+    }
+)
 @Getter
 @Setter
 @Builder
