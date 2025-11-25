@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
 
-export default function UploadForm({ onUpload, uploading }) {
+export default function UploadForm({ onUpload, uploading, disabled = false }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (uploading) return;
+    if (uploading || disabled) return;
     setError('');
     if (!file) {
       setError('Select a file');
@@ -28,12 +28,13 @@ export default function UploadForm({ onUpload, uploading }) {
         ref={inputRef}
         type="file"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
+        disabled={disabled}
       />
       <div className={"flex items-center"}>
         <button
           className={"border border-black rounded-sm py-[2px] px-3 bg-gray-100 disabled:opacity-60"}
           type="submit"
-          disabled={uploading}
+          disabled={uploading || disabled}
         >
           Upload
         </button>

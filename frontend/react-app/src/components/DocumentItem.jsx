@@ -21,7 +21,7 @@ function formatFileSize(bytes) {
     }
 }
 
-export default function DocumentItem({doc, onDelete}) {
+export default function DocumentItem({doc, onDelete, canDelete = true}) {
     const processingProgress = doc?.processingProgress;
 
     const badgeStyle = {
@@ -64,12 +64,13 @@ export default function DocumentItem({doc, onDelete}) {
                     Search by
                 </Link>
                 <button
-                    onClick={() => onDelete?.(doc.id)}
-                    className={"hover:underline"}
+                    onClick={() => canDelete && onDelete?.(doc.id)}
+                    className={"hover:underline disabled:opacity-60"}
                     style={{
                         color: '#b00',
-                        cursor: 'pointer'
+                        cursor: canDelete ? 'pointer' : 'not-allowed'
                     }}
+                    disabled={!canDelete}
                 >
                     Delete
                 </button>

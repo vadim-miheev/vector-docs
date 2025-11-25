@@ -124,6 +124,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       STORAGE_SERVICE_HOST: ${SITE_ROOT}/api/storage
       INTERNAL_HOST: http://storage-service:8080
+      DEMO_USER_ID: ${DEMO_USER_ID:-0}
     command: [ "java", "-jar", "/app/storage-service.jar" ]
     volumes:
       - ./services/storage-service/build/libs/:/app

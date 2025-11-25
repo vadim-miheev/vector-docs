@@ -6,6 +6,8 @@ services:
     working_dir: /app
     volumes:
       - ./frontend/react-app:/app
+    environment:
+      REACT_APP_DEMO_USER_ID: ${DEMO_USER_ID:-0}
     command: sh -c "npm ci && npm run build"
     restart: "no"
     user: "${UID:-1000}:${GID:-1000}"
