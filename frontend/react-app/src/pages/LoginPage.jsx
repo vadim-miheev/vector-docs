@@ -82,8 +82,26 @@ export default function LoginPage() {
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </form>
       {showDemoHint && (
-        <div className={"mb-4 py-2 px-3 border border-blue-500 bg-blue-50 text-blue-800 rounded max-w-[320px] w-full"}>
-          <div className="font-bold mb-1">Demo account</div>
+        <div
+          className={
+            "mb-4 py-2 px-3 border border-blue-500 bg-blue-50 text-blue-800 rounded " +
+            "max-w-[320px] w-full cursor-pointer select-none"
+          }
+          onClick={() => {
+            if (!demoCreds) return;
+            setEmail(demoCreds.email || '');
+            setPassword(demoCreds.password || '');
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && demoCreds) {
+              setEmail(demoCreds.email || '');
+              setPassword(demoCreds.password || '');
+            }
+          }}
+        >
+          <div className="font-bold mb-1">Demo account (click to fill form)</div>
           {demoCreds ? (
             <div className="text-sm">
               <div>Email: <span className="font-mono">{demoCreds.email}</span></div>
