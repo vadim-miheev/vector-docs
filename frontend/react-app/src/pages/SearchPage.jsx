@@ -5,6 +5,8 @@ import {useNotifications} from "../store/NotificationsContext";
 import {useAuth} from '../hooks/useAuth';
 import DownloadLink from "../components/DownloadLink";
 import { useParams, useNavigate } from 'react-router-dom';
+import { fetchDemoJson, isDemoUser } from '../services/demoService';
+import {useAuthContext} from "../store/AuthContext";
 
 function SendIcon({ className = 'w-5 h-5' }) {
   return (
@@ -40,12 +42,15 @@ export default function SearchPage() {
   const {addMessage} = useNotifications();
   const textareaRef = useRef(null);
   const conn = useWebSocket();
+  const {user} = useAuthContext();
   const {logout} = useAuth();
   const messagesEndRef = useRef(null);
   const { documentId } = useParams();
   const navigate = useNavigate();
   const [selectedDocId, setSelectedDocId] = useState('');
   const [selectedDocName, setSelectedDocName] = useState('');
+  const showDemoHint = isDemoUser(user);
+  const [searchExamples, setSearchExamples] = useState([]);
 
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
@@ -72,6 +77,27 @@ export default function SearchPage() {
     }
     return () => { cancelled = true; };
   }, [documentId]);
+
+  // Load demo search examples if demo user is enabled
+  useEffect(() => {
+    let active = true;
+    if (showDemoHint) {
+      fetchDemoJson()
+        .then((data) => {
+          if (!active) return;
+          const list = Array.isArray(data?.searchExamples) ? data.searchExamples : [];
+          setSearchExamples(list);
+        })
+        .catch(() => {
+          if (active) setSearchExamples([]);
+        });
+    } else {
+      setSearchExamples([]);
+    }
+    return () => {
+      active = false;
+    };
+  }, [showDemoHint]);
 
   // Persist messages to localStorage
   useEffect(() => {
@@ -227,7 +253,33 @@ export default function SearchPage() {
       {/* Messages area */}
       <main className="flex-1 overflow-y-auto px-4 py-6 mb-20">
         {messages?.length === 0 ? (
-          <div className="text-neutral-400 text-sm">Ask a question below, the answer will appear here.</div>
+          <div>
+            {!showDemoHint && (<div className="text-neutral-400 text-sm">Ask a question below, the answer will appear here.</div>)}
+            {showDemoHint && Array.isArray(searchExamples) && searchExamples.length > 0 && (
+              <>
+                <div className="text-neutral-500 text-sm mb-4">Ask your question below or try these example queries:</div>
+                <div className="flex flex-wrap gap-2">
+                  {searchExamples.map((ex, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 rounded-full px-2.5 py-1.5 text-xs"
+                      onClick={() => {
+                        setInput(ex);
+                        if (textareaRef.current) {
+                          textareaRef.current.focus();
+                          autoResize();
+                        }
+                      }}
+                      title="Click to copy into the search field"
+                    >
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         ) : (
           <div className="space-y-6">
             {messages?.map((m) => (
