@@ -6,11 +6,13 @@ services:
     working_dir: /app
     volumes:
       - ./frontend/react-app:/app
+      - react-npm-cache:/npm-cache
+      - react-node-modules:/app/node_modules
     environment:
       REACT_APP_DEMO_USER_ID: ${DEMO_USER_ID:-0}
+      NPM_CONFIG_CACHE: /npm-cache
     command: sh -c "npm ci && npm run build"
     restart: "no"
-    user: "${UID:-1000}:${GID:-1000}"
 
   react-nginx:
     profiles: ["prod"]
@@ -23,3 +25,7 @@ services:
     volumes:
       - ./frontend/react-app/build:/usr/share/nginx/html:ro
       - ./frontend/nginx:/etc/nginx/conf.d:ro
+
+volumes:
+  react-npm-cache:
+  react-node-modules:
