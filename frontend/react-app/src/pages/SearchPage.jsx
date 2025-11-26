@@ -223,11 +223,11 @@ export default function SearchPage() {
   return (
     <div className="text-black flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-[57px] z-10 bg-white">
-        <div className="flex items-baseline gap-4 min-w-0">
+      <header className="border-b border-gray-200 px-4 py-3 flex items-start md:items-center justify-between sticky top-[57px] z-10 bg-white">
+        <div className="flex items-baseline gap-4 min-w-0 flex-col md:flex-row">
           <h1 className="text-lg font-semibold tracking-tight">AI Search</h1>
           {selectedDocId && (
-            <span className="inline-flex items-center gap-2 text-xs border border-gray-300 rounded-md px-2 py-0.5 bg-gray-100 max-w-xs">
+            <span className="inline-flex items-center gap-2 text-xs border border-gray-300 rounded-md px-2 py-0.5 bg-gray-100 max-w-[80vw] md:max-w-xs">
               <span className="truncate" title={selectedDocName || selectedDocId}>{selectedDocName || 'Document'}</span>
               <button
                 type="button"
