@@ -35,12 +35,7 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '8px 0',
-            borderBottom: '1px solid #eee'
-        }}>
+      <div className="flex flex-col md:flex-row justify-between py-2 border-b border-gray-200">
             <div>
                 <div style={{fontWeight: 500, display: 'flex', alignItems: 'center'}}>
                     <span>{doc.name}</span>

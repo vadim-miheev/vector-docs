@@ -23,7 +23,7 @@ export default function UploadForm({ onUpload, uploading, disabled = false }) {
   };
 
   return (
-    <form onSubmit={submit} className={"flex gap-4 items-center"} >
+    <form onSubmit={submit} className={"flex gap-4 flex-col md:flex-row items-start md:items-center"} >
       <input
         ref={inputRef}
         type="file"
