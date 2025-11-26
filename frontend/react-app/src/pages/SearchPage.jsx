@@ -298,12 +298,13 @@ export default function SearchPage() {
                   {m.role === 'agent' && Array.isArray(m.sources) && m.sources.length > 0 && (
                     <div className="pt-2">
                       <div className="text-xs text-neutral-500 mb-1">Sources:</div>
-                      <ul className="list-disc list-inside space-y-1">
+                      <ul className="space-y-1">
                         {m.sources.map((s, idx) => {
                           const title = s?.name || `Source ${idx + 1}`;
                           return (
-                            <li key={idx} className={"hover:underline"}>
-                              <DownloadLink fileId={s?.id} fileName={title} page={s?.page} open={true} classes={"text-blue-900 hover:underline"} onClick={() => {}}>
+                            <li key={idx} className={"flex items-start gap-2 hover:underline"}>
+                              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-black flex-shrink-0" />
+                              <DownloadLink fileId={s?.id} fileName={title} page={s?.page} open={true} classes={"text-blue-900 hover:underline text-left"} onClick={() => {}}>
                                 {title} (page {s?.page})
                               </DownloadLink>
                             </li>
