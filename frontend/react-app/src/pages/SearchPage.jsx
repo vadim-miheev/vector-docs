@@ -52,6 +52,7 @@ export default function SearchPage() {
   const [selectedDocName, setSelectedDocName] = useState('');
   const showDemoHint = isDemoUser(user);
   const [searchExamples, setSearchExamples] = useState([]);
+  const [showBounceAnimation, setShowBounceAnimation] = useState(true);
 
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
@@ -220,6 +221,15 @@ export default function SearchPage() {
     }
   }, [messages, isSending]);
 
+  // Remove bounce animation after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowBounceAnimation(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="text-black flex flex-col">
       {/* Header */}
@@ -337,39 +347,38 @@ export default function SearchPage() {
       </main>
 
       {/* Input bar */}
-      <div className={"container fixed bottom-0 w-full backdrop-blur border-t border-gray-300"}>
-        <form onSubmit={sendMessage} className="relative w-full bottom-0   px-4 py-3">
+      <div className={`container fixed bottom-0 w-full backdrop-blur border-t border-gray-300 ${showBounceAnimation ? 'animate-bounce' : ''}`}>
+        <form onSubmit={sendMessage} className="relative w-full bottom-0 px-4 py-3">
           <div className="mx-auto w-full flex items-center gap-2">
-          <textarea
-            ref={el => (textareaRef.current = el)}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              autoResize();
-            }}
-            onInput={autoResize}
-            rows={1}
-            style={{
-              maxHeight: '160px',
-              resize: 'none',
-            }}
-            placeholder={'Ask a question…'}
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-neutral-500
-            focus:outline-none focus:ring-1 focus:ring-gray-400"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-
-          />
+            <textarea
+              ref={el => (textareaRef.current = el)}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                autoResize();
+              }}
+              onInput={autoResize}
+              rows={1}
+              style={{
+                maxHeight: '160px',
+                resize: 'none',
+              }}
+              placeholder={'Ask a question…'}
+              className="flex-1 rounded-md border border-gray-600 px-3 py-2 text-sm placeholder-neutral-700
+              focus:outline-none focus:ring-1 focus:ring-gray-400"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+            />
 
             <button
               type="submit"
               disabled={!input.trim()}
-              className="inline-flex items-center justify-center rounded-3xl border border-gray-400 px-2 py-2 text-sm
-              hover:bg-blue-500 hover:text-white disabled:opacity-20"
+              className="inline-flex items-center justify-center rounded-3xl border border-gray-600 px-2 py-2 text-sm
+              hover:bg-blue-500 hover:text-white disabled:opacity-50"
               title="Send"
             >
               <SendIcon />

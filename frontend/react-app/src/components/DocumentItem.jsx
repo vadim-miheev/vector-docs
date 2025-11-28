@@ -25,13 +25,15 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
     const processingProgress = doc?.processingProgress;
 
     const badgeStyle = {
+        display: "flex",
+        gap: "5px",
+        alignItems: "center",
         marginLeft: 8,
         fontSize: 12,
         color: '#666',
         border: '1px solid #ddd',
         borderRadius: 4,
-        padding: '2px 6px',
-        backgroundColor: '#f8f8f8'
+        padding: '2px 6px'
     };
 
     return (
@@ -43,7 +45,17 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
                       <span style={badgeStyle}>
                         PROCESSING
                         {processingProgress !== undefined && (<>({processingProgress}%)</>)}
+                        <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                             viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                  strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
                       </span>
+                    )}
+                    {doc?.status === 'processed' && (
+                      <span style={badgeStyle} className={"bg-[#1fff0424]"}>PROCESSED</span>
                     )}
                 </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
@@ -55,9 +67,15 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
                 <DownloadLink fileId={doc.id} fileName={doc.name} classes={"hover:underline"}>
                     Download
                 </DownloadLink>
-                <Link to={`/search/${encodeURIComponent(doc.id)}`} className={"hover:underline"}>
+                {doc?.status !== 'processed' ? (
+                  <span className="opacity-60 cursor-not-allowed">
                     Search by
-                </Link>
+                  </span>
+                ) : (
+                  <Link to={`/search/${encodeURIComponent(doc.id)}`} className={"hover:underline"}>
+                    Search by
+                  </Link>
+                )}
                 <button
                     onClick={() => canDelete && onDelete?.(doc.id)}
                     className={"hover:underline disabled:opacity-60"}
