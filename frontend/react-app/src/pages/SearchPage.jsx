@@ -52,7 +52,6 @@ export default function SearchPage() {
   const [selectedDocName, setSelectedDocName] = useState('');
   const showDemoHint = isDemoUser(user);
   const [searchExamples, setSearchExamples] = useState([]);
-  const [showBounceAnimation, setShowBounceAnimation] = useState(true);
 
   // Last message tracking (React strict mode double calls fix)
   useEffect(() => {
@@ -221,15 +220,6 @@ export default function SearchPage() {
     }
   }, [messages, isSending]);
 
-  // Remove bounce animation after 2 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowBounceAnimation(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="text-black flex flex-col">
       {/* Header */}
@@ -264,7 +254,7 @@ export default function SearchPage() {
       </header>
 
       {/* Messages area */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 mb-20">
+      <main className="flex-1 overflow-y-auto px-4 py-6 mb-20" onClick={() => { textareaRef.current?.focus()}}>
         {messages?.length === 0 ? (
           <div>
             {!showDemoHint && (<div className="text-neutral-400 text-sm">Ask a question below, the answer will appear here.</div>)}
@@ -347,7 +337,10 @@ export default function SearchPage() {
       </main>
 
       {/* Input bar */}
-      <div className={`container fixed bottom-0 w-full backdrop-blur border-t border-gray-300 ${showBounceAnimation ? 'animate-bounce' : ''}`}>
+      <div className={`container fixed bottom-0 w-full backdrop-blur border-t border-gray-700 animate-slide-up`} style={{
+        animationDelay: '500ms',
+        animationFillMode: 'both'
+      }}>
         <form onSubmit={sendMessage} className="relative w-full bottom-0 px-4 py-3">
           <div className="mx-auto w-full flex items-center gap-2">
             <textarea
@@ -365,7 +358,7 @@ export default function SearchPage() {
               }}
               placeholder={'Ask a question…'}
               className="flex-1 rounded-md border border-gray-600 px-3 py-2 text-sm placeholder-neutral-700
-              focus:outline-none focus:ring-1 focus:ring-gray-400"
+              focus:outline-none focus:ring-1 focus:ring-gray-400 focus:bg-white"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -378,7 +371,7 @@ export default function SearchPage() {
               type="submit"
               disabled={!input.trim()}
               className="inline-flex items-center justify-center rounded-3xl border border-gray-600 px-2 py-2 text-sm
-              hover:bg-blue-500 hover:text-white disabled:opacity-50"
+              hover:bg-blue-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send"
             >
               <SendIcon />
