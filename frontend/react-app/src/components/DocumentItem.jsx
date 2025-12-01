@@ -55,7 +55,7 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
                       </span>
                     )}
                     {doc?.status === 'processed' && (
-                      <span style={badgeStyle} className={"bg-[#1fff0424]"}>PROCESSED</span>
+                      <span style={badgeStyle} className={"bg-[#1fff0424]"}>READY</span>
                     )}
                 </div>
                 {doc.size != null && <div style={{fontSize: 12, color: '#666'}}>{formatFileSize(doc.size)}</div>}
