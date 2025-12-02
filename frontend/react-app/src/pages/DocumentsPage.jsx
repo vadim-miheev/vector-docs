@@ -28,9 +28,15 @@ export default function DocumentsPage() {
           </button>
         </div>
       )}
-      <h3 className={"text-1xl font-bold mb-4"}>Upload</h3>
+      <div className="flex flex-col-reverse md:flex-row justify-between md:items-center">
+        <h3 className={"text-1xl font-bold mb-4"}>Upload</h3>
+        {user?.email && (<span className="mb-4">{user.email}</span>)}
+      </div>
+
       <UploadForm onUpload={upload} uploading={uploading} disabled={demoUser} />
-      <h1 className={"text-2xl font-bold mb-4 mt-12"}>My Documents</h1>
+      <div className="flex items-center mb-4 mt-12">
+        <h1 className={"text-2xl font-bold"}>My Documents</h1>
+      </div>
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
       <div style={{ marginTop: 16 }}>

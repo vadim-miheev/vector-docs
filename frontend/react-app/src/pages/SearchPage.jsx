@@ -26,9 +26,11 @@ function TrashIcon({ className = 'w-5 h-5' }) {
 }
 
 export default function SearchPage() {
+  const {user} = useAuthContext();
+  const userMessagesKey = 'vd_user_' + user.id + '_messages'
   const [messages, setMessages] = useState(() => {
     try {
-      const raw = localStorage.getItem('vd_messages');
+      const raw = localStorage.getItem(userMessagesKey);
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (_) {
@@ -45,7 +47,6 @@ export default function SearchPage() {
   const messagesEndRef = useRef(null);
   const formRef = useRef(null);
   const conn = useWebSocket();
-  const {user} = useAuthContext();
   const {logout} = useAuth();
   const { documentId } = useParams();
   const navigate = useNavigate();
@@ -104,8 +105,8 @@ export default function SearchPage() {
   // Persist messages to localStorage
   useEffect(() => {
     try {
-      if (messages?.length) localStorage.setItem('vd_messages', JSON.stringify(messages));
-      else localStorage.removeItem('vd_messages');
+      if (messages?.length) localStorage.setItem(userMessagesKey, JSON.stringify(messages));
+      else localStorage.removeItem(userMessagesKey);
     } catch (_) {
       // ignore
     }
