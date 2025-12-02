@@ -38,7 +38,7 @@ export default function RegisterPage() {
 
   return (
       <div className={"p-4 flex flex-col items-center mt-[15%]"}>
-      <h2 className={"text-4xl font-bold mb-8"}>Register</h2>
+      <h1 className={"text-4xl font-bold mb-8"}>Register</h1>
       <form onSubmit={onSubmit} className="flex flex-col gap-2 max-w-[320px] w-full mb-4">
         <input
           className={"border border-black rounded-md px-2 py-1"}

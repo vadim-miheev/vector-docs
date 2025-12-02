@@ -2,19 +2,19 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthContext } from '../store/AuthContext';
 
-export default function HomePage() {
+export default function AboutPage() {
   const { isAuthenticated } = useAuthContext();
   const logoSrc = process.env.PUBLIC_URL + '/logo512.png';
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-center gap-4 ">
+      <div className="flex md:justify-center gap-4 ">
         <img src={logoSrc} alt="VectorDocs Logo" className="h-36 w-36"/>
       </div>
 
       <h1 className="text-3xl font-bold mb-6 flex flex-col-reverse md:flex-row md:items-center justify-between">
         Vector Docs
-        <a href="https://github.com/vadim-miheev/vector-docs" target="_blank" className="mb-2">
+        <a href="https://github.com/vadim-miheev/vector-docs" target="_blank" className="mb-10 md:mb-0">
           <img src="https://img.shields.io/badge/GitHub-Repository-blue?logo=github" alt="GitHub Repository"/>
         </a>
       </h1>

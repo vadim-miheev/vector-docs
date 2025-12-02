@@ -1,14 +1,14 @@
 import React from 'react';
-import {BrowserRouter, Routes, Route, Link, Navigate, NavLink} from 'react-router-dom';
+import {BrowserRouter, Link, Navigate, NavLink, Route, Routes} from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import PasswordSetupPage from '../pages/PasswordSetupPage';
 import PasswordResetRequestPage from '../pages/PasswordResetRequestPage';
 import DocumentsPage from '../pages/DocumentsPage';
 import SearchPage from '../pages/SearchPage';
-import HomePage from '../pages/HomePage';
 import {useAuthContext} from '../store/AuthContext';
 import {useAuth} from '../hooks/useAuth';
+import AboutPage from "../pages/AboutPage";
 
 function RequireAuth({children}) {
   const {isAuthenticated} = useAuthContext();
@@ -49,6 +49,12 @@ export default function AppRouter() {
                     >
                       Search
                     </NavLink>
+                    <NavLink
+                      to="/about"
+                      className={({isActive}) =>
+                        'nav-link hover:underline ' + (isActive ? 'active' : '')}>
+                      About
+                    </NavLink>
                   </div>
                   <div className={"p-4"}>
                     <Link className={"nav-link hover:underline flex items-center"} to="/login" onClick={() => logout()} title={"Log out"}>
@@ -67,12 +73,18 @@ export default function AppRouter() {
                   </Link>
                   <div className="absolute left-1/2 -translate-x-1/2 flex gap-4 items-center">
                     <NavLink
+                      to="/about"
+                      className={({isActive}) =>
+                        'nav-link hover:underline ' + (isActive ? 'active' : '')}>
+                      About
+                    </NavLink>
+                    <NavLink
                       to="/login"
                       className={({isActive}) =>
                         'nav-link hover:underline ' + (isActive ? 'active' : '')
                       }
                     >
-                      Log in
+                      Login
                     </NavLink>
                     <NavLink
                       to="/register"
@@ -87,7 +99,8 @@ export default function AppRouter() {
               )}
         </nav>
         <Routes>
-          <Route path="/" element={<HomePage/>}/>
+          <Route path="/" element={<Navigate to={'/about'} replace/>}/>
+          <Route path="/about" element={<AboutPage/>}/>
           <Route path="/login" element={<LoginPage/>}/>
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="/password-reset" element={<PasswordResetRequestPage/>}/>
