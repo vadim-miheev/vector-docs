@@ -257,6 +257,8 @@ export default function SearchPage() {
       {/* Messages area */}
       <main className="flex-1 overflow-y-auto px-4 py-6 mb-20 min-h-[50vh]" onClick={
         () => {
+          if (messages?.length > 0) return
+          // Input field ping
           textareaRef.current?.focus()
           formRef.current?.classList.add('animate-ping-custom')
           textareaRef.current?.classList.add('focus:bg-green-100')
