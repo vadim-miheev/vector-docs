@@ -26,3 +26,28 @@ code {
 .animate-slide-up {
   animation: slide-up 0.5s ease-out;
 }
+
+@keyframes ping-custom {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 35%{
+        transform: translateX(-40px);
+    }
+
+    20%, 50%{
+        transform: translateX(40px);
+    }
+
+    60% {
+        transform: translateX(-20px);
+    }
+
+    80% {
+        transform: translateX(20px);
+    }
+}
+
+.animate-ping-custom {
+  animation: ping-custom 1s ease-in-out;
+}

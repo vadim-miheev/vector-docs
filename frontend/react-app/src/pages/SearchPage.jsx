@@ -42,10 +42,11 @@ export default function SearchPage() {
   const currentAgentMessageRef = useRef({});
   const {addMessage} = useNotifications();
   const textareaRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const formRef = useRef(null);
   const conn = useWebSocket();
   const {user} = useAuthContext();
   const {logout} = useAuth();
-  const messagesEndRef = useRef(null);
   const { documentId } = useParams();
   const navigate = useNavigate();
   const [selectedDocId, setSelectedDocId] = useState('');
@@ -254,7 +255,17 @@ export default function SearchPage() {
       </header>
 
       {/* Messages area */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 mb-20" onClick={() => { textareaRef.current?.focus()}}>
+      <main className="flex-1 overflow-y-auto px-4 py-6 mb-20 min-h-[50vh]" onClick={
+        () => {
+          textareaRef.current?.focus()
+          formRef.current?.classList.add('animate-ping-custom')
+          textareaRef.current?.classList.add('focus:bg-green-100')
+          setTimeout(() => {
+            formRef.current?.classList.remove('animate-ping-custom')
+            textareaRef.current?.classList.remove('focus:bg-green-100')
+          }, 1000)
+        }
+      }>
         {messages?.length === 0 ? (
           <div>
             {!showDemoHint && (<div className="text-neutral-400 text-sm">Ask a question below, the answer will appear here.</div>)}
@@ -337,14 +348,13 @@ export default function SearchPage() {
       </main>
 
       {/* Input bar */}
-      <div className={`container fixed bottom-0 w-full backdrop-blur border-t border-gray-700 animate-slide-up`} style={{
-        animationDelay: '500ms',
-        animationFillMode: 'both'
-      }}>
-        <form onSubmit={sendMessage} className="relative w-full bottom-0 px-4 py-3">
+      <div className={`container fixed bottom-0 w-full backdrop-blur border-t border-gray-700 animate-slide-up`}
+           style={{animationDelay: '500ms',animationFillMode: 'both'}}
+      >
+        <form onSubmit={sendMessage} className="relative w-full bottom-0 px-4 py-3" ref={formRef}>
           <div className="mx-auto w-full flex items-center gap-2">
             <textarea
-              ref={el => (textareaRef.current = el)}
+              ref={textareaRef}
               value={input}
               onChange={(e) => {
                 setInput(e.target.value);
