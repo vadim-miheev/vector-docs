@@ -43,8 +43,8 @@ export default function DocumentItem({doc, onDelete, canDelete = true}) {
                     <span>{doc.name}</span>
                     {doc?.status !== 'processed' && (
                       <span style={badgeStyle}>
-                        PROCESSING
-                        {processingProgress !== undefined && (<>({processingProgress}%)</>)}
+                        {processingProgress === undefined && (<>PROCESSING</>)}
+                        {processingProgress !== undefined && (<>INDEXING ({processingProgress}%)</>)}
                         <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                              viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
