@@ -11,7 +11,7 @@ Vector Docs is a full-featured platform for:
 - User access management and authentication
 
 **Technology Stack:**
-- **Backend**: Java 24, Spring Boot, Kafka, Langchain4j, PostgreSQL (pgvector)
+- **Backend**: Java 24, Spring Boot, Kafka, Langchain4j, PostgreSQL (pgvector), Apache PDFBox, Tesseract OCR
 - **Frontend**: React, Tailwind
 - **Infrastructure**: Docker, Docker Compose, Nginx
 - **AI/ML**: Integration with LLM APIs (OpenAI-compatible), vector embeddings
