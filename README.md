@@ -1,6 +1,6 @@
 # Vector Docs
 
-Distributed microservices application for document processing and AI-powered search using vector embeddings.
+Distributed microservices application for document organization and AI-powered search using vector embeddings.
 
 ## About the Project
 
@@ -67,7 +67,7 @@ make dev-start
 ```bash
 make prod-start
 ```
-In production mode, frontend is served through Nginx (INTERNAL_UI_URL=http://react-nginx:80).
+In production mode, frontend is served through Nginx.
 
 ## Configuration
 
@@ -90,6 +90,9 @@ EMBEDDING_MODEL_NAME=nomic-embed-text
 APP_CHAT_BASE_URL=https://api.deepseek.com/v1
 APP_CHAT_MODEL_NAME=deepseek-chat
 APP_CHAT_API_KEY=your-api-key
+
+# Path to UI for gateway proxy (change to localhost:3000 for dev)
+INTERNAL_UI_URL=http://react-nginx:80
 ```
 
 **Authentication:**
@@ -166,7 +169,7 @@ vector-docs/
 1. Navigate to frontend: `cd frontend/react-app`
 2. Install dependencies: `npm install`
 3. Start dev server: `npm start`
-4. Application available at http://localhost:3000
+4. Application available at http://localhost:3000 (or http://localhost:8080 if INTERNAL_UI_URL lead to localhost:3000)
 
 ### Debugging
 For Java service debugging, uncomment `JAVA_TOOL_OPTIONS` lines in `docker-compose.yml` and restart the service.
