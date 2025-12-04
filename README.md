@@ -42,7 +42,7 @@ Vector Docs is a full-featured platform for:
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/vadim-miheev/vector-docs
 cd vector-docs
 ```
 
