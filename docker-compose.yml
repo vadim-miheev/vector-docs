@@ -33,6 +33,8 @@ services:
       - storage-service
       - answer-generator
       - search-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   document-processor:
     build:
