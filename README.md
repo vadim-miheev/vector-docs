@@ -1,6 +1,6 @@
 # Vector Docs
 
-Distributed microservices application for AI-powered search through private documents library.
+A distributed microservices application designed for AI-powered search functionality across a library of private documents
 
 ## About the Project
 
