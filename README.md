@@ -1,6 +1,6 @@
 # Vector Docs
 
-Distributed microservices application for document organization and AI-powered search using vector embeddings.
+Distributed microservices application for AI-powered search through private documents library.
 
 ## About the Project
 
@@ -18,6 +18,9 @@ Vector Docs is a full-featured platform for:
 
 ## Architecture
 
+[![Architecture.svg](docs/diagrams/Architecture.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fvector-docs.drawio)
+
+
 ### Microservices
 1. **Gateway** (`/gateway`) - API gateway with authentication (JWT) on port 8080
 2. **Document Processor** (`/services/document-processor`) - document processing, OCR, embedding generation
@@ -27,9 +30,7 @@ Vector Docs is a full-featured platform for:
 6. **Notification Service** (`/services/notification-service`) - user notification handling
 
 ### Infrastructure
-- **PostgreSQL** - primary database with Flyway migrations
-- **Kafka** - message broker for async communication
-- **Nginx** - reverse proxy for frontend in production
+[![Deployment.svg](docs/diagrams/Deployment.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fvector-docs.drawio)
 
 ## Quick Start
 
