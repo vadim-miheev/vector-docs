@@ -18,7 +18,7 @@ Vector Docs is a full-featured platform for:
 
 ## Architecture
 
-[![Architecture.svg](docs/diagrams/Architecture.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fvector-docs.drawio)
+[![Architecture.svg](docs/diagrams/Architecture.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fdiagrams%2Fvector-docs.drawio)
 
 
 ### Microservices
@@ -30,7 +30,7 @@ Vector Docs is a full-featured platform for:
 6. **Notification Service** (`/services/notification-service`) - user notification handling
 
 ### Infrastructure
-[![Deployment.svg](docs/diagrams/Deployment.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fvector-docs.drawio)
+[![Deployment.svg](docs/diagrams/Deployment.svg)](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fvadim-miheev%2Fvector-docs%2Frefs%2Fheads%2Fmaster%2Fdocs%2Fdiagrams%2Fvector-docs.drawio)
 
 ## Quick Start
 
