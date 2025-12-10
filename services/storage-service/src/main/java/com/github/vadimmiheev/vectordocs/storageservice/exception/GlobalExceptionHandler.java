@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleFileNotReady(FileNotReadyException ex) {
         log.warn(ex.getMessage());
         return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        log.warn(ex.getMessage());
+        return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
