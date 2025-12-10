@@ -7,8 +7,11 @@ import com.github.vadimmiheev.vectordocs.storageservice.event.DocumentUploadedEv
 import com.github.vadimmiheev.vectordocs.storageservice.exception.InvalidFileTypeException;
 import com.github.vadimmiheev.vectordocs.storageservice.exception.ResourceNotFoundException;
 import com.github.vadimmiheev.vectordocs.storageservice.repository.DocumentRepository;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +28,23 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DocumentStorageService {
 
     private final DocumentRepository documentRepository;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${ROOT_STORAGE_PATH:/tmp/storage}")
+    @Setter(AccessLevel.PACKAGE)
+    private String rootStoragePath;
+
+    @Value("${STORAGE_SERVICE_HOST:http://localhost:8080}")
+    @Setter(AccessLevel.PACKAGE)
+    private String storageServiceHost;
+
+    @Value("${INTERNAL_HOST:http://storage-service}")
+    @Setter(AccessLevel.PACKAGE)
+    private String internalHost;
 
     public List<DocumentResponse> getUserDocuments(String userId) {
         return documentRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
@@ -49,7 +64,7 @@ public class DocumentStorageService {
             throw new InvalidFileTypeException("Only PDF and TXT files are allowed");
         }
 
-        Path userDir = Paths.get(System.getenv("ROOT_STORAGE_PATH"), userId);
+        Path userDir = Paths.get(rootStoragePath, userId);
         try {
             Files.createDirectories(userDir);
             Path target = userDir.resolve(id);
@@ -163,7 +178,7 @@ public class DocumentStorageService {
             return null;
         }
         // Current service private host
-        String host = publicLink ? System.getenv("STORAGE_SERVICE_HOST") : System.getenv("INTERNAL_HOST");
+        String host = publicLink ? storageServiceHost : internalHost;
         return host + "/documents/" + document.getId() + "/download";
     }
 }
