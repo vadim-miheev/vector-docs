@@ -41,7 +41,7 @@ class TextExtractionServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Hello, World!\nThis is a text file.", result.get(0));
+        assertEquals("Hello, World!\nThis is a text file.", result.getFirst());
     }
 
     @Test
@@ -57,7 +57,7 @@ class TextExtractionServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Line 1\nLine 2\nLine 3\nLine 4", result.get(0));
+        assertEquals("Line 1\nLine 2\nLine 3\nLine 4", result.getFirst());
     }
 
     @Test
@@ -73,7 +73,7 @@ class TextExtractionServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Text content", result.get(0));
+        assertEquals("Text content", result.getFirst());
     }
 
     @Test
