@@ -22,6 +22,11 @@ gradle-bootjar-once:
 gradle-clean:
 	docker compose run --rm gradle gradle clean --no-daemon
 
+
+# Runs all tests without gradle daemon (for CI/CD or one-time test runs)
+gradle-test:
+	docker compose run --rm gradle gradle test --no-daemon
+
 dev-build: gradle-bootjar db-migration
 
 # Java services rebuilding

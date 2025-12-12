@@ -114,6 +114,7 @@ make dev-start      # Start in development mode
 make prod-start     # Start in production mode
 make stop           # Stop all containers
 make gradle-clean   # Clean build artifacts
+make gradle-test    # Run all tests without gradle daemon (for CI/CD)
 ```
 
 ### Individual Service Rebuild
