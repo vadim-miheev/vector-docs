@@ -2,7 +2,6 @@ package com.github.vadimmiheev.vectordocs.documentprocessor.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentUploadedEvent;
-import com.github.vadimmiheev.vectordocs.documentprocessor.event.EmbeddingsGeneratedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.util.DocumentsStatusStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,12 +9,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -43,7 +44,15 @@ class DocumentProcessingServiceTest {
     @BeforeEach
     void setUp() {
         service = new DocumentProcessingService(downloadService, textExtractionService, embeddingService, objectMapper, kafkaTemplate);
-        // No need to clear DocumentsStatusStore as each test uses unique UUIDs
+        // Set topic names via reflection
+        ReflectionTestUtils.setField(service, "documentsProcessedTopic", "documents.processed");
+        ReflectionTestUtils.setField(service, "documentsProcessingErrorTopic", "documents.processing.error");
+        // Clear DocumentsStatusStore to avoid interference between tests
+        @SuppressWarnings("unchecked")
+        ConcurrentHashMap<String, ?> statuses = (ConcurrentHashMap<String, ?>) ReflectionTestUtils.getField(DocumentsStatusStore.class, "STATUSES");
+        if (statuses != null) {
+            statuses.clear();
+        }
     }
 
     @Test
@@ -66,7 +75,6 @@ class DocumentProcessingServiceTest {
         when(downloadService.download(event.getDownloadUrl(), event.getUserId())).thenReturn(fileBytes);
         when(textExtractionService.extractText(fileBytes, event.getContentType(), event.getName())).thenReturn(pages);
         when(embeddingService.generateAndSaveEmbeddings(event, pages)).thenReturn(5);
-        when(embeddingService.countTotalEmbeddings(event.getId())).thenReturn(5L);
 
         // Act
         service.process(event);
@@ -182,42 +190,4 @@ class DocumentProcessingServiceTest {
         verify(kafkaTemplate, times(1)).send(eq("documents.processed"), eq(event.getId().toString()), anyString());
     }
 
-    @Test
-    void publishDocumentProcessedEvent_validEvent_sendsToKafka() throws Exception {
-        // Arrange
-        EmbeddingsGeneratedEvent event = new EmbeddingsGeneratedEvent(
-                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
-                "user123",
-                "test.pdf"
-        );
-
-        when(embeddingService.countTotalEmbeddings(event.fileUuid())).thenReturn(10L);
-        when(objectMapper.writeValueAsString(any())).thenReturn("{\"id\":\"" + event.fileUuid() + "\",\"userId\":\"user123\",\"fileName\":\"test.pdf\",\"embeddingsCount\":10}");
-
-        // Act
-        // Call private method via reflection or public method that triggers it
-        // Since it's @EventListener, we need to simulate event publishing
-        // For simplicity, we'll test the method directly using reflection
-        // But better to test through process() method
-
-        // Alternatively, we can test the integration via process() test above
-        // For this test, we'll skip direct testing of private method
-    }
-
-    @Test
-    void publishDocumentProcessedEvent_countEmbeddingsFails_logsError() throws Exception {
-        // Arrange
-        EmbeddingsGeneratedEvent event = new EmbeddingsGeneratedEvent(
-                UUID.fromString("123e4567-e89b-12d3-a456-426614174000"),
-                "user123",
-                "test.pdf"
-        );
-
-        when(embeddingService.countTotalEmbeddings(event.fileUuid()))
-                .thenThrow(new RuntimeException("Count failed"));
-
-        // Act
-        // The method will log error but not throw
-        // We can verify logging if needed
-    }
 }
