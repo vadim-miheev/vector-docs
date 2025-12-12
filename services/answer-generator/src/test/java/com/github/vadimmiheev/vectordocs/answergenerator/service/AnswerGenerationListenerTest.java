@@ -34,9 +34,6 @@ class AnswerGenerationListenerTest {
     @Captor
     private ArgumentCaptor<StreamingResponseHandler<AiMessage>> handlerCaptor;
 
-    @Captor
-    private ArgumentCaptor<Flux<String>> fluxCaptor;
-
     private AnswerGenerationListener listener;
 
     @BeforeEach
@@ -81,6 +78,7 @@ class AnswerGenerationListenerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void shouldHandleEmptyEmbeddings() throws Exception {
         // Given
         String message = "{\"userId\":\"user-123\",\"query\":\"test query\",\"requestId\":\"req-123\"}";

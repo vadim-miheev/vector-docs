@@ -206,7 +206,7 @@ class EmbeddingServiceTest {
     }
 
     @Test
-    void processPendingEmbeddingsForDocument_pendingEmbeddings_generatesVectors() throws Exception {
+    void processPendingEmbeddingsForDocument_pendingEmbeddings_generatesVectors() {
         // Arrange
         UUID fileUuid = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
         String fileName = "test.pdf";

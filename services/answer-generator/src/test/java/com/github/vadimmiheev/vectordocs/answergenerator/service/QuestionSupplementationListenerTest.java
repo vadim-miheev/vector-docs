@@ -7,8 +7,6 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -32,12 +30,6 @@ class QuestionSupplementationListenerTest {
 
     @Mock
     private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Captor
-    private ArgumentCaptor<String> messageCaptor;
-
-    @Captor
-    private ArgumentCaptor<String> topicCaptor;
 
     private QuestionSupplementationListener listener;
 

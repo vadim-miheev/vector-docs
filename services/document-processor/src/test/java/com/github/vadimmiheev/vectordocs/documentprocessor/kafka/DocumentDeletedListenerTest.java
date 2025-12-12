@@ -3,7 +3,6 @@ package com.github.vadimmiheev.vectordocs.documentprocessor.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.vadimmiheev.vectordocs.documentprocessor.dto.DocumentDeletedEvent;
 import com.github.vadimmiheev.vectordocs.documentprocessor.service.EmbeddingService;
-import com.github.vadimmiheev.vectordocs.documentprocessor.util.DocumentsStatusStore;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,9 +24,6 @@ class DocumentDeletedListenerTest {
 
     @Mock
     private EmbeddingService embeddingService;
-
-    @Mock
-    private DocumentsStatusStore documentsStatusStore;
 
     private DocumentDeletedListener listener;
 
