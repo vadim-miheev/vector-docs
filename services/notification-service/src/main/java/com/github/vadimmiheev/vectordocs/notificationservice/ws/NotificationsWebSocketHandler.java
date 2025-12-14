@@ -17,7 +17,8 @@ public class NotificationsWebSocketHandler implements WebSocketHandler {
 
     @Override
     public @NonNull Mono<Void> handle(@NonNull WebSocketSession session) {
-        String userId = session.getHandshakeInfo().getHeaders().getFirst("X-User-Id");
+        var headers = session.getHandshakeInfo().getHeaders();
+        String userId = headers != null ? headers.getFirst("X-User-Id") : null;
         if (userId == null || userId.isBlank()) {
             log.warn("WS connection without userId, session id={}", session.getId());
             // Keep the connection open but we won't be able to route user-specific notifications

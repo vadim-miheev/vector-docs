@@ -48,6 +48,13 @@ public class SourcesParser {
         return sourcesList;
     }
 
+    /**
+     * Clears all stored request metadata. For testing purposes only.
+     */
+    public static void clear() {
+        REQUESTS_META.clear();
+    }
+
 
     @Getter
     @Setter
