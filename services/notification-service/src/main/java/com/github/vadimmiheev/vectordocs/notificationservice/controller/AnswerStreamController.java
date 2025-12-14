@@ -24,11 +24,20 @@ public class AnswerStreamController {
 
     @MessageMapping("search.result")
     public Flux<Void> searchResultsHandler(Flux<String> tokens, @Header(name = "metadata", required = false) Map<String, Object> metadata) {
+        if (metadata == null) {
+            log.warn("Received search.result with null metadata, ignoring");
+            return Flux.empty();
+        }
         String userId = (String) metadata.get("userId");
+        Object requestIdObj = metadata.get("requestId");
+        if (userId == null || requestIdObj == null) {
+            log.warn("Received search.result with missing userId or requestId, ignoring");
+            return Flux.empty();
+        }
+        String requestId = requestIdObj.toString();
 
         return tokens
                 .doOnNext((t) -> {
-                    String requestId = metadata.get("requestId").toString();
                     t = SourcesParser.processNextToken(requestId, t);
 
                     Map<String, Object> payload = Map.of(
@@ -52,7 +61,7 @@ public class AnswerStreamController {
                 .doOnComplete(() -> {
                     Map<String, Object> payload = Map.of(
                             "event", "chat.response",
-                            "requestId", metadata.get("requestId"),
+                            "requestId", requestId,
                             "complete", true
                     );
                     try {

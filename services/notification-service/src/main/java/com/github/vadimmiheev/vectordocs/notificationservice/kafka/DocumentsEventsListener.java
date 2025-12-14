@@ -35,8 +35,8 @@ public class DocumentsEventsListener {
             @SuppressWarnings("unchecked")
             HashMap<String, String> messageMap = objectMapper.readValue(message, HashMap.class);
 
-            if (!messageMap.containsKey("userId")) {
-                log.warn("{} message has no userId, skipping WS push. key={}, message={}", record.topic(), record.key(), message);
+            if (!messageMap.containsKey("userId") || messageMap.get("userId") == null) {
+                log.warn("{} message has no userId or userId is null, skipping WS push. key={}, message={}", record.topic(), record.key(), message);
                 return;
             }
 
