@@ -60,6 +60,7 @@ public class DocumentUploadFlowIT {
     private MockMvc mockMvc;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private EmbeddedKafkaBroker embeddedKafkaBroker;
 
     @Autowired
@@ -91,6 +92,7 @@ public class DocumentUploadFlowIT {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void successfulPdfDocumentUpload_ShouldStoreInDatabaseAndPublishEvent() throws Exception {
         // Create a PDF file mock
         MockMultipartFile file = new MockMultipartFile(
@@ -157,6 +159,7 @@ public class DocumentUploadFlowIT {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void textFileUpload_ShouldSuccess() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
