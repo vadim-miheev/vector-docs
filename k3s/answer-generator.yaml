@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: answer-generator
+  namespace: vector-docs
+  labels:
+    app: answer-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: answer-generator
+  template:
+    metadata:
+      labels:
+        app: answer-generator
+    spec:
+      containers:
+        - name: answer-generator
+          image: vector-docs/answer-generator:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: APP_CHAT_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: APP_CHAT_BASE_URL
+            - name: APP_CHAT_MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: APP_CHAT_MODEL_NAME
+            - name: APP_CHAT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: APP_CHAT_API_KEY
+            - name: APP_NOTIFICATION_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: APP_NOTIFICATION_HOST
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: answer-generator
+  namespace: vector-docs
+  labels:
+    app: answer-generator
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: answer-generator

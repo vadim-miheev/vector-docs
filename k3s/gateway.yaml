@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: vector-docs
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: vector-docs/gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
+            - name: SPRING_DATASOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: POSTGRES_PORT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: JWT_SECRET
+            - name: JWT_TTL_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: JWT_TTL_SECONDS
+            - name: SPRING_MAIL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: SPRING_MAIL_HOST
+            - name: SPRING_MAIL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: SPRING_MAIL_PORT
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: SPRING_MAIL_USERNAME
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: SPRING_MAIL_PASSWORD
+            - name: SPRING_MAIL_SMTP_AUTH
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: SPRING_MAIL_SMTP_AUTH
+            - name: SPRING_MAIL_SMTP_STARTTLS_ENABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: SPRING_MAIL_SMTP_STARTTLS_ENABLE
+            - name: SITE_ROOT
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: SITE_ROOT
+            - name: INTERNAL_UI_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: INTERNAL_UI_URL
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: vector-docs
+  labels:
+    app: gateway
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
+      protocol: TCP
+      name: http
+  selector:
+    app: gateway

@@ -69,3 +69,32 @@ rebuild-ns: dev-build
 rebuild-gateway: dev-build
 	docker compose up gateway -d --build
 	docker compose restart gateway
+
+# =============================================================================
+# k3s targets
+# =============================================================================
+
+k3s-build-images: gradle-bootjar
+	./k3s/build-images.sh
+
+k3s-deploy:
+	kubectl apply -k k3s/
+
+k3s-migrate:
+	kubectl apply -f k3s/namespace.yaml
+	kubectl apply -f k3s/flyway.yaml
+
+k3s-deploy-all: k3s-build-images k3s-deploy
+	@echo "✓ Deployed. If flyway migration didn't run, execute:  make k3s-migrate"
+
+k3s-logs:
+	kubectl -n vector-docs logs -l app=$(filter-out $@,$(MAKECMDGOALS)) -f
+
+k3s-restart:
+	kubectl -n vector-docs rollout restart deployment/$(filter-out $@,$(MAKECMDGOALS))
+
+k3s-pods:
+	kubectl -n vector-docs get pods -w
+
+k3s-services:
+	kubectl -n vector-docs get services
