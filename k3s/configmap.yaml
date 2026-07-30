@@ -1,4 +1,7 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-docs-config
 data:
   # Database
   POSTGRES_DB: "vector_docs"
