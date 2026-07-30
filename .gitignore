@@ -66,5 +66,9 @@ Thumbs.db
 CLAUDE.local.md
 plan.md
 
+# k3s
+k3s/secret.yaml
+k3s/k3s.yaml
+
 # Env
 .env
