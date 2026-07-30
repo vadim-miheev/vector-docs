@@ -22,8 +22,6 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
             - name: SPRING_DATASOURCE_USER
               valueFrom:
                 secretKeyRef:
@@ -44,11 +42,14 @@ spec:
                 configMapKeyRef:
                   name: vector-docs-config
                   key: POSTGRES_PORT
-            - name: EMBEDDING_BASE_URL
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
+            - name: HOST_IP
               valueFrom:
-                configMapKeyRef:
-                  name: vector-docs-config
-                  key: EMBEDDING_BASE_URL
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: EMBEDDING_BASE_URL
+              value: "http://$(HOST_IP):11434/v1"
             - name: EMBEDDING_MODEL_NAME
               valueFrom:
                 configMapKeyRef:

@@ -34,8 +34,6 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
             - name: SPRING_DATASOURCE_USER
               valueFrom:
                 secretKeyRef:
@@ -56,6 +54,8 @@ spec:
                 configMapKeyRef:
                   name: vector-docs-config
                   key: POSTGRES_PORT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
             - name: ROOT_STORAGE_PATH
               value: "/files"
             - name: KAFKA_BOOTSTRAP_SERVERS
@@ -63,11 +63,13 @@ spec:
                 configMapKeyRef:
                   name: vector-docs-config
                   key: KAFKA_BOOTSTRAP_SERVERS
-            - name: STORAGE_SERVICE_HOST
+            - name: SITE_ROOT
               valueFrom:
                 configMapKeyRef:
                   name: vector-docs-config
-                  key: STORAGE_SERVICE_HOST
+                  key: SITE_ROOT
+            - name: STORAGE_SERVICE_HOST
+              value: "http://$(SITE_ROOT)/api/storage"
             - name: INTERNAL_HOST
               value: "http://storage-service:8080"
             - name: DEMO_USER_ID
