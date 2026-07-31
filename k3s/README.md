@@ -200,4 +200,22 @@ The main settings are in `configmap.yaml` and `secret.yaml`:
 | `KAFKA_BOOTSTRAP_SERVERS` | |
 | `SITE_ROOT`, `INTERNAL_UI_URL` | |
 
-Измените под своё окружение перед деплоем.
+Adjust these to your environment before deploying.
+
+### Frontend runtime config
+
+The frontend does not bake `REACT_APP_*` values into the image: the `API_BASE_URL`, `WS_URL` and
+`DEMO_USER_ID` values are set **at runtime** via a `config.js` block in `configmap.yaml` and
+read by the app from `window.APP_CONFIG`. You can change the environment configuration
+without rebuilding the image:
+
+```bash
+# 1. Edit the config.js block in k3s/configmap.yaml
+# 2. Apply the manifests and restart the frontend
+kubectl apply -k k3s/
+kubectl -n vector-docs rollout restart deployment/frontend
+```
+
+nginx serves `/config.js` without caching and mounts it from a ConfigMap
+(see `frontend/react-app/src/config/runtimeConfig.js`). The frontend `DEMO_USER_ID`
+must match the backend `DEMO_USER_ID`.
