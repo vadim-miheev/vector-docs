@@ -1,0 +1,22 @@
+# Build contexts rooted at the project root (frontend, flyway) must not copy
+# local-only files. Frontend config is runtime-only in Kubernetes — the
+# vector-docs-config ConfigMap is the single source of truth, not the local `.env`.
+
+# Local-only env files (dev values must not be baked into images)
+frontend/react-app/.env
+frontend/react-app/.env.*
+
+# Frontend dependencies & build output (regenerated in-container)
+frontend/react-app/node_modules
+frontend/react-app/build
+
+# Gradle / Java build artifacts
+**/build/
+.gradle/
+
+# VCS and editor files
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml

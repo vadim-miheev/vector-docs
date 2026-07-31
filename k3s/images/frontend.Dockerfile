@@ -1,10 +1,11 @@
+# Frontend config (REACT_APP_*) is runtime-only: the image is environment-agnostic.
+# Per-environment values are injected at runtime via nginx serving /config.js,
+# populated from the vector-docs-config ConfigMap (k3s/configmap.yaml).
 FROM node:22.18 AS build
 WORKDIR /app
 COPY frontend/react-app/package.json frontend/react-app/package-lock.json ./
 RUN npm ci
 COPY frontend/react-app/ .
-ARG REACT_APP_DEMO_USER_ID=1
-ENV REACT_APP_DEMO_USER_ID=${REACT_APP_DEMO_USER_ID}
 RUN npm run build
 
 FROM nginx:alpine

@@ -43,3 +43,13 @@ data:
 
   # Notification service host (used by answer-generator)
   APP_NOTIFICATION_HOST: "notification-service"
+
+  # Frontend runtime config — served by nginx as /config.js and read by the app
+  # at runtime (window.APP_CONFIG). No image rebuild is needed to change these;
+  # edit per environment and restart the frontend pod.
+  config.js: |
+    window.APP_CONFIG = {
+      API_BASE_URL: "https://vector-docs.mnixa.duckdns.org",
+      WS_URL: "wss://vector-docs.mnixa.duckdns.org/api/ws/notifications",
+      DEMO_USER_ID: "1"
+    };
