@@ -61,6 +61,21 @@ docker save vector-docs/gateway:latest | bzip2 | \
 
 Скопировать проект на ноду и запустить `./k3s/scripts/build-images.sh`.
 
+#### Вариант D — Docker Hub
+
+```bash
+docker login
+./k3s/scripts/push-images.sh          # пушить все образы
+./k3s/scripts/push-images.sh gateway  # пушить один образ
+```
+
+Образы пушатся как `vadimmiheev/vector-docs/<service>:latest`. После пуша поправьте `image` в манифестах:
+
+```bash
+sed -i 's|image: vector-docs/|image: vadimmiheev/vector-docs/|g' k3s/*.yaml
+kubectl apply -k k3s/
+```
+
 ### 3. Запустите миграцию БД
 
 ```bash
@@ -148,7 +163,8 @@ kubectl -n vector-docs port-forward service/frontend 3000:80
 k3s/
 ├── scripts/
 │   ├── build-images.sh               # Сборка всех образов
-│   └── load-images.sh                # Загрузка образов в кластер
+│   ├── load-images.sh                # Загрузка образов в кластер
+│   └── push-images.sh                # Пуш образов в Docker Hub
 ├── kustomization.yaml                # Kustomize root
 ├── namespace.yaml                    # namespace: vector-docs
 ├── configmap.yaml                    # Нечувствительные переменные
