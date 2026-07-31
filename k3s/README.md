@@ -1,8 +1,8 @@
 # k3s Deployment — vector-docs
 
-Конфигурация для запуска vector-docs в кластере **K3s** (2 worker-ноды).
+Configuration for running vector-docs in a **K3s** cluster (2 worker nodes).
 
-## Архитектура
+## Architecture
 
 ```
                NodePort:30080
@@ -24,120 +24,120 @@
 frontend (nginx :80)
 ```
 
-## Быстрый старт
+## Quick start
 
-### 1. Соберите JAR-файлы
+### 1. Build the JAR files
 
 ```bash
 cd /home/vadim/java/vector-docs
 make dev-build
 ```
 
-### 2. Соберите Docker-образы
+### 2. Build the Docker images
 
 ```bash
 ./k3s/scripts/build-images.sh
 ```
 
-Загрузите образы в кластер (выберите один из вариантов):
+Load the images into the cluster (choose one of the options):
 
-#### Вариант A — registry (рекомендуется)
+#### Option A — registry (recommended)
 
 ```bash
 REGISTRY=myregistry.example.com ./k3s/scripts/build-images.sh
-# Затем поправить imagePullPolicy и image в манифестах
+# Then adjust imagePullPolicy and image in the manifests
 ```
 
-#### Вариант B — загрузка напрямую на ноды
+#### Option B — load directly onto the nodes
 
 ```bash
-# На каждой ноде:
+# On each node:
 docker save vector-docs/gateway:latest | bzip2 | \
   ssh <user>@<node-ip> sudo k3s ctr images import -
-# Повторить для каждого образа
+# Repeat for each image
 ```
 
-#### Вариант C — собрать прямо на control-plane ноде
+#### Option C — build directly on the control-plane node
 
-Скопировать проект на ноду и запустить `./k3s/scripts/build-images.sh`.
+Copy the project to the node and run `./k3s/scripts/build-images.sh`.
 
-#### Вариант D — Docker Hub
+#### Option D — Docker Hub
 
 ```bash
 docker login
-./k3s/scripts/push-images.sh          # пушить все образы
-./k3s/scripts/push-images.sh gateway  # пушить один образ
+./k3s/scripts/push-images.sh          # push all images
+./k3s/scripts/push-images.sh gateway  # push a single image
 ```
 
-Образы пушатся как `vadimmiheev/vector-docs/<service>:latest`. После пуша поправьте `image` в манифестах:
+Images are pushed as `vadimmiheev/vector-docs/<service>:latest`. After pushing, adjust `image` in the manifests:
 
 ```bash
 sed -i 's|image: vector-docs/|image: vadimmiheev/vector-docs/|g' k3s/*.yaml
 kubectl apply -k k3s/
 ```
 
-### 3. Запустите миграцию БД
+### 3. Run the DB migration
 
 ```bash
 kubectl apply -f k3s/flyway.yaml
-# Проверьте статус:
+# Check the status:
 kubectl -n vector-docs logs job/flyway-migration -f
 ```
 
-### 4. Разверните сервисы
+### 4. Deploy the services
 
 ```bash
 kubectl apply -k k3s/
 ```
 
-### 5. Проверьте статус
+### 5. Check the status
 
 ```bash
 kubectl -n vector-docs get pods -w
 kubectl -n vector-docs get services
 ```
 
-### 6. Откройте приложение
+### 6. Open the application
 
 ```
 http://<node-ip>:30080
 ```
 
-## Управление
+## Management
 
-### Логи
+### Logs
 
 ```bash
-# Все поды сервиса
+# All pods of a service
 kubectl -n vector-docs logs -l app=gateway -f
 
-# Конкретный под
+# A specific pod
 kubectl -n vector-docs logs deployment/gateway -f
 ```
 
-### Рестарт
+### Restart
 
 ```bash
 kubectl -n vector-docs rollout restart deployment/gateway
 ```
 
-### Обновление после изменений кода
+### Updating after code changes
 
 ```bash
-# 1. Пересобрать JAR
+# 1. Rebuild the JAR
 make rebuild-gateway
 
-# 2. Пересобрать образ
+# 2. Rebuild the image
 docker build -f k3s/images/service.Dockerfile \
   -t vector-docs/gateway:latest \
   --build-arg JAR_FILE=build/libs/gateway.jar \
   ./gateway
 
-# 3. Загрузить в кластер (повторить на всех нодах)
+# 3. Load into the cluster (repeat on all nodes)
 docker save vector-docs/gateway:latest | bzip2 | \
   ssh <node> sudo k3s ctr images import -
 
-# 4. Рестарт
+# 4. Restart
 kubectl -n vector-docs rollout restart deployment/gateway
 ```
 
@@ -157,19 +157,19 @@ kubectl -n vector-docs port-forward service/kafka 9092:9092
 kubectl -n vector-docs port-forward service/frontend 3000:80
 ```
 
-## Структура файлов
+## File structure
 
 ```
 k3s/
 ├── scripts/
-│   ├── build-images.sh               # Сборка всех образов
-│   ├── load-images.sh                # Загрузка образов в кластер
-│   └── push-images.sh                # Пуш образов в Docker Hub
+│   ├── build-images.sh               # Build all images
+│   ├── load-images.sh                # Load images into the cluster
+│   └── push-images.sh                # Push images to Docker Hub
 ├── kustomization.yaml                # Kustomize root
 ├── namespace.yaml                    # namespace: vector-docs
-├── configmap.yaml                    # Нечувствительные переменные
-├── secret.yaml                       # Чувствительные переменные
-├── postgres.yaml                     # PostgreSQL с pgvector + PVC
+├── configmap.yaml                    # Non-sensitive variables
+├── secret.yaml                       # Sensitive variables
+├── postgres.yaml                     # PostgreSQL with pgvector + PVC
 ├── zookeeper.yaml                    # ZooKeeper
 ├── kafka.yaml                        # Kafka broker
 ├── storage-service.yaml              # Storage Service + PVC
@@ -181,15 +181,15 @@ k3s/
 ├── frontend.yaml                     # Frontend (nginx)
 ├── flyway.yaml                       # Flyway migration Job
 └── images/
-    ├── service.Dockerfile            # Generic для Java-сервисов
+    ├── service.Dockerfile            # Generic for Java services
     ├── document-processor.Dockerfile # + tesseract OCR
     ├── frontend.Dockerfile           # Multi-stage React → nginx
-    └── flyway.Dockerfile             # Flyway + встроенные миграции
+    └── flyway.Dockerfile             # Flyway + bundled migrations
 ```
 
-## Переменные окружения
+## Environment variables
 
-Основные настройки в `configmap.yaml` и `secret.yaml`:
+The main settings are in `configmap.yaml` and `secret.yaml`:
 
 | ConfigMap | Secret |
 |---|---|
