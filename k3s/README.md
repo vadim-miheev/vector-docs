@@ -128,7 +128,7 @@ kubectl -n vector-docs rollout restart deployment/gateway
 make rebuild-gateway
 
 # 2. Пересобрать образ
-docker build -f k3s/images/Dockerfile.service \
+docker build -f k3s/images/service.Dockerfile \
   -t vector-docs/gateway:latest \
   --build-arg JAR_FILE=build/libs/gateway.jar \
   ./gateway
@@ -181,10 +181,10 @@ k3s/
 ├── frontend.yaml                     # Frontend (nginx)
 ├── flyway.yaml                       # Flyway migration Job
 └── images/
-    ├── Dockerfile.service            # Generic для Java-сервисов
-    ├── Dockerfile.document-processor # + tesseract OCR
-    ├── Dockerfile.frontend           # Multi-stage React → nginx
-    └── Dockerfile.flyway             # Flyway + встроенные миграции
+    ├── service.Dockerfile            # Generic для Java-сервисов
+    ├── document-processor.Dockerfile # + tesseract OCR
+    ├── frontend.Dockerfile           # Multi-stage React → nginx
+    └── flyway.Dockerfile             # Flyway + встроенные миграции
 ```
 
 ## Переменные окружения

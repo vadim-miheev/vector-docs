@@ -71,7 +71,7 @@ for service in gateway search-service answer-generator notification-service stor
     esac
     build_image \
         "${service}" \
-        "${SCRIPT_DIR}/../images/Dockerfile.service" \
+        "${SCRIPT_DIR}/../images/service.Dockerfile" \
         "${src}" \
         "build/libs/${service}.jar" || true
 done
@@ -79,20 +79,20 @@ done
 # ---- document-processor (tesseract) ----
 build_image \
     "document-processor" \
-    "${SCRIPT_DIR}/../images/Dockerfile.document-processor" \
+    "${SCRIPT_DIR}/../images/document-processor.Dockerfile" \
     "${PROJECT_DIR}/services/document-processor" \
     "build/libs/document-processor.jar" || true
 
 # ---- frontend (multi-stage) ----
 build_image \
     "frontend" \
-    "${SCRIPT_DIR}/../images/Dockerfile.frontend" \
+    "${SCRIPT_DIR}/../images/frontend.Dockerfile" \
     "${PROJECT_DIR}" || true
 
 # ---- flyway (with migrations bundled) ----
 build_image \
     "flyway" \
-    "${SCRIPT_DIR}/../images/Dockerfile.flyway" \
+    "${SCRIPT_DIR}/../images/flyway.Dockerfile" \
     "${PROJECT_DIR}" || true
 
 echo ""
