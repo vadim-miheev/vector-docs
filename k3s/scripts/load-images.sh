@@ -5,13 +5,13 @@ set -euo pipefail
 # Load Docker images into k3s cluster (control-plane node)
 # =============================================================================
 # Prerequisites:
-#   - Images are built (run ./k3s/build-images.sh first)
+#   - Images are built (run ./k3s/scripts/build-images.sh first)
 #   - Run this ON the k3s control-plane node (or node where ctr is available)
 #   - sudo access for k3s ctr
 #
 # Usage:
-#   ./k3s/load-images.sh              # load all images
-#   ./k3s/load-images.sh gateway      # load a single image (by service name)
+#   ./k3s/scripts/load-images.sh              # load all images
+#   ./k3s/scripts/load-images.sh gateway      # load a single image (by service name)
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -75,7 +75,7 @@ rebuild-gateway: dev-build
 # =============================================================================
 
 k3s-build-images: gradle-bootjar
-	./k3s/build-images.sh
+	./k3s/scripts/build-images.sh
 
 k3s-deploy:
 	kubectl apply -k k3s/

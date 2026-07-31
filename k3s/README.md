@@ -36,7 +36,7 @@ make dev-build
 ### 2. Соберите Docker-образы
 
 ```bash
-./k3s/build-images.sh
+./k3s/scripts/build-images.sh
 ```
 
 Загрузите образы в кластер (выберите один из вариантов):
@@ -44,7 +44,7 @@ make dev-build
 #### Вариант A — registry (рекомендуется)
 
 ```bash
-REGISTRY=myregistry.example.com ./k3s/build-images.sh
+REGISTRY=myregistry.example.com ./k3s/scripts/build-images.sh
 # Затем поправить imagePullPolicy и image в манифестах
 ```
 
@@ -59,7 +59,7 @@ docker save vector-docs/gateway:latest | bzip2 | \
 
 #### Вариант C — собрать прямо на control-plane ноде
 
-Скопировать проект на ноду и запустить `./k3s/build-images.sh`.
+Скопировать проект на ноду и запустить `./k3s/scripts/build-images.sh`.
 
 ### 3. Запустите миграцию БД
 
@@ -146,7 +146,9 @@ kubectl -n vector-docs port-forward service/frontend 3000:80
 
 ```
 k3s/
-├── build-images.sh                   # Сборка всех образов
+├── scripts/
+│   ├── build-images.sh               # Сборка всех образов
+│   └── load-images.sh                # Загрузка образов в кластер
 ├── kustomization.yaml                # Kustomize root
 ├── namespace.yaml                    # namespace: vector-docs
 ├── configmap.yaml                    # Нечувствительные переменные

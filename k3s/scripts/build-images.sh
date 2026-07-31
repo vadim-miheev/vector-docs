@@ -15,13 +15,13 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 IMAGE_PREFIX="vector-docs"
 TAG="latest"
 
 # Override with registry prefix if needed, e.g.:
-#   REGISTRY=registry.example.com ./build-images.sh
+#   REGISTRY=registry.example.com ./k3s/scripts/build-images.sh
 REGISTRY="${REGISTRY:-}"
 
 echo "============================================"
@@ -71,7 +71,7 @@ for service in gateway search-service answer-generator notification-service stor
     esac
     build_image \
         "${service}" \
-        "${SCRIPT_DIR}/images/Dockerfile.service" \
+        "${SCRIPT_DIR}/../images/Dockerfile.service" \
         "${src}" \
         "build/libs/${service}.jar" || true
 done
@@ -79,20 +79,20 @@ done
 # ---- document-processor (tesseract) ----
 build_image \
     "document-processor" \
-    "${SCRIPT_DIR}/images/Dockerfile.document-processor" \
+    "${SCRIPT_DIR}/../images/Dockerfile.document-processor" \
     "${PROJECT_DIR}/services/document-processor" \
     "build/libs/document-processor.jar" || true
 
 # ---- frontend (multi-stage) ----
 build_image \
     "frontend" \
-    "${SCRIPT_DIR}/images/Dockerfile.frontend" \
+    "${SCRIPT_DIR}/../images/Dockerfile.frontend" \
     "${PROJECT_DIR}" || true
 
 # ---- flyway (with migrations bundled) ----
 build_image \
     "flyway" \
-    "${SCRIPT_DIR}/images/Dockerfile.flyway" \
+    "${SCRIPT_DIR}/../images/Dockerfile.flyway" \
     "${PROJECT_DIR}" || true
 
 echo ""
@@ -102,7 +102,7 @@ echo "============================================"
 echo ""
 echo "Load into the cluster:"
 echo "  Option 1 — push to registry:"
-echo "    REGISTRY=myregistry.example.com ./k3s/build-images.sh"
+echo "    REGISTRY=myregistry.example.com ./k3s/scripts/build-images.sh"
 echo "    kubectl set image -n vector-docs deployment/gateway ..."
 echo ""
 echo "  Option 2 — save and import on node:"
@@ -110,7 +110,7 @@ echo "    docker save ${IMAGE_PREFIX}/gateway:${TAG} | bzip2 | \\"
 echo "      ssh <node> sudo k3s ctr images import -"
 echo ""
 echo "  Option 3 — build directly on each node:"
-echo "    Copy project to node, run ./k3s/build-images.sh"
+echo "    Copy project to node, run ./k3s/scripts/build-images.sh"
 echo ""
 echo "Deploy:"
 echo "    kubectl apply -k k3s/"
