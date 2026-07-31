@@ -69,11 +69,13 @@ docker login
 ./k3s/scripts/push-images.sh gateway  # push a single image
 ```
 
-Images are pushed as `vadimmiheev/vector-docs/<service>:latest`. After pushing, adjust `image` in the manifests:
+Images are pushed as `vadimmiheev/vector-docs-<service>:latest` (Docker Hub does not support nested repository names, so the `vector-docs` prefix is added with a hyphen). The k3s manifests already reference these Docker Hub images with `imagePullPolicy: Always`. After a new push, redeploy:
 
 ```bash
-sed -i 's|image: vector-docs/|image: vadimmiheev/vector-docs/|g' k3s/*.yaml
 kubectl apply -k k3s/
+kubectl -n vector-docs rollout restart deploy/gateway deploy/search-service \
+  deploy/answer-generator deploy/notification-service deploy/storage-service \
+  deploy/document-processor deploy/frontend
 ```
 
 ### 3. Run the DB migration

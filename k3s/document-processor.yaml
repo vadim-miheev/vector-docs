@@ -19,8 +19,8 @@ spec:
         kubernetes.io/hostname: x99 #node with ollama
       containers:
         - name: document-processor
-          image: vector-docs/document-processor:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-document-processor:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

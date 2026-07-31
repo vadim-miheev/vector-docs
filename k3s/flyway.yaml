@@ -23,8 +23,8 @@ spec:
               echo "Postgres is ready"
       containers:
         - name: flyway
-          image: vector-docs/flyway:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-flyway:latest
+          imagePullPolicy: Always
           env:
             - name: POSTGRES_DB
               valueFrom:

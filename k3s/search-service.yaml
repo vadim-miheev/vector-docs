@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: search-service
-          image: vector-docs/search-service:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-search-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: vector-docs/frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           volumeMounts:

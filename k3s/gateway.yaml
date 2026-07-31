@@ -29,8 +29,8 @@ spec:
               echo "Postgres is ready"
       containers:
         - name: gateway
-          image: vector-docs/gateway:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

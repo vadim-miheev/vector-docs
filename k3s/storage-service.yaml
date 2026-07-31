@@ -29,8 +29,8 @@ spec:
     spec:
       containers:
         - name: storage-service
-          image: vector-docs/storage-service:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-storage-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

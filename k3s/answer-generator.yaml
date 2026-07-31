@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: answer-generator
-          image: vector-docs/answer-generator:latest
-          imagePullPolicy: IfNotPresent
+          image: vadimmiheev/vector-docs-answer-generator:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:

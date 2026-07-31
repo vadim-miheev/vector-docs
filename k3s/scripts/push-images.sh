@@ -13,7 +13,9 @@ set -euo pipefail
 #   ./k3s/scripts/push-images.sh               # push all images
 #   ./k3s/scripts/push-images.sh gateway       # push a single image (by service name)
 #
-# Images are pushed as <DOCKERHUB_USER>/vector-docs/<service>:<tag>.
+# Images are pushed as <DOCKERHUB_USER>/vector-docs-<service>:<tag>.
+# Docker Hub requires flat repository names (no slashes after the username),
+# so the prefix is added via a hyphen, not a slash.
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,7 +53,7 @@ fi
 
 echo "============================================"
 echo " Pushing images to Docker Hub"
-echo " Target: ${DOCKERHUB_USER}/${IMAGE_PREFIX}/<service>:${TAG}"
+echo " Target: ${DOCKERHUB_USER}/${IMAGE_PREFIX}-<service>:${TAG}"
 echo " Services: ${SERVICES[*]}"
 echo "============================================"
 echo ""
@@ -66,7 +68,7 @@ fi
 pushed=0
 for service in "${SERVICES[@]}"; do
     source_image="${IMAGE_PREFIX}/${service}:${TAG}"
-    target_image="${DOCKERHUB_USER}/${IMAGE_PREFIX}/${service}:${TAG}"
+    target_image="${DOCKERHUB_USER}/${IMAGE_PREFIX}-${service}:${TAG}"
 
     # Verify the Docker image exists locally
     if ! docker image inspect "${source_image}" &>/dev/null; then
@@ -89,7 +91,7 @@ echo " Done! ${pushed} image(s) pushed"
 echo "============================================"
 echo ""
 echo "Update k3s manifests to reference Docker Hub:"
-echo "  sed -i 's|image: vector-docs/|image: ${DOCKERHUB_USER}/vector-docs/|g' k3s/*.yaml"
+echo "  sed -i 's|image: vector-docs/|image: ${DOCKERHUB_USER}/vector-docs-|g' k3s/*.yaml"
 echo ""
 echo "Then deploy:"
 echo "  kubectl apply -k k3s/"
