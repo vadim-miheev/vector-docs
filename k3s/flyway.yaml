@@ -25,6 +25,17 @@ spec:
         - name: flyway
           image: vadimmiheev/vector-docs-flyway:latest
           imagePullPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              exec flyway \
+                -url="jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}" \
+                -user="${POSTGRES_USER}" \
+                -password="${POSTGRES_PASSWORD}" \
+                -locations=filesystem:/flyway/sql \
+                -connectRetries=10 \
+                migrate
           env:
             - name: POSTGRES_DB
               valueFrom:
