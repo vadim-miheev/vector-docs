@@ -50,6 +50,6 @@ data:
   config.js: |
     window.APP_CONFIG = {
       API_BASE_URL: "https://vector-docs.mnixa.duckdns.org",
-      WS_URL: "wss://vector-docs.mnixa.duckdns.org/api/ws/notifications",
+      WS_URL: "wss://vector-docs.mnixa.duckdns.org/ws/notifications",
       DEMO_USER_ID: "1"
     };
