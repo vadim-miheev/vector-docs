@@ -1,10 +1,12 @@
 // Centralized utilities for demo mode logic and demo.json loading
 
+import { resolveConfig } from '../config/runtimeConfig';
+
 let demoJsonCache = null;
 let demoJsonPromise = null;
 
 export function getDemoId() {
-  const demoIdStr = process.env.REACT_APP_DEMO_USER_ID || '0';
+  const demoIdStr = resolveConfig('DEMO_USER_ID', process.env.REACT_APP_DEMO_USER_ID, '0');
   const demoId = parseInt(demoIdStr, 10);
   return Number.isFinite(demoId) ? demoId : 0;
 }

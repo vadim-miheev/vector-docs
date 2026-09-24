@@ -1,6 +1,19 @@
-// Centralized endpoints and configuration
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-export const WS_NOTIFICATIONS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/api/ws/notifications';
+// Centralized endpoints and configuration.
+// Values resolve at runtime from /config.js (window.APP_CONFIG), falling back
+// to build-time REACT_APP_* env vars (e.g. `.env` during local development).
+import { resolveConfig } from './runtimeConfig';
+
+export const API_BASE_URL = resolveConfig(
+  'API_BASE_URL',
+  process.env.REACT_APP_API_BASE_URL,
+  'http://localhost:8080'
+);
+
+export const WS_NOTIFICATIONS_URL = resolveConfig(
+  'WS_URL',
+  process.env.REACT_APP_WS_URL,
+  'ws://localhost:8080/api/ws/notifications'
+);
 
 export const ENDPOINTS = {
   login: `${API_BASE_URL}/auth/login`,

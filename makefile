@@ -69,3 +69,45 @@ rebuild-ns: dev-build
 rebuild-gateway: dev-build
 	docker compose up gateway -d --build
 	docker compose restart gateway
+
+# =============================================================================
+# k3s targets
+# =============================================================================
+
+# Default kubeconfig for the k3s cluster; override with: make ... KUBECONFIG=<path>
+KUBECONFIG ?= k3s/k3s.yaml
+export KUBECONFIG
+
+k3s-build-images: gradle-bootjar
+	./k3s/scripts/build-images.sh
+
+k3s-deploy-images: gradle-bootjar k3s-build-images
+	./k3s/scripts/push-images.sh
+
+k3s-deploy:
+	kubectl apply -k k3s/
+
+k3s-migrate:
+	kubectl apply -f k3s/namespace.yaml
+	kubectl delete job flyway-migration -n vector-docs --ignore-not-found
+	kubectl apply -f k3s/flyway.yaml
+
+k3s-deploy-all: k3s-build-images k3s-deploy
+	@echo "✓ Deployed. If flyway migration didn't run, execute:  make k3s-migrate"
+
+k3s-logs:
+	kubectl -n vector-docs logs -l app=$(filter-out $@,$(MAKECMDGOALS)) -f
+
+# Restarts all deployments, or a single one: make k3s-restart <deployment>
+k3s-restart:
+	@if [ -z "$(filter-out $@,$(MAKECMDGOALS))" ]; then \
+		kubectl -n vector-docs rollout restart deployment; \
+	else \
+		kubectl -n vector-docs rollout restart deployment/$(filter-out $@,$(MAKECMDGOALS)); \
+	fi
+
+k3s-pods:
+	kubectl -n vector-docs get pods -w
+
+k3s-services:
+	kubectl -n vector-docs get services

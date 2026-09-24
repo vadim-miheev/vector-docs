@@ -70,6 +70,7 @@ class NotificationClientTest {
         RSocketRequester.RequestSpec requestSpec = mock(RSocketRequester.RequestSpec.class);
         RSocketRequester.RetrieveSpec retrieveSpec = mock(RSocketRequester.RetrieveSpec.class);
 
+        when(rSocketRequesterBuilder.rsocketConnector(any())).thenReturn(rSocketRequesterBuilder);
         when(rSocketRequesterBuilder.tcp("notification-service", 7000)).thenReturn(rSocketRequester);
         when(rSocketRequester.route("search.result")).thenReturn(requestSpec);
         when(requestSpec.metadata(any(String.class), any(MimeType.class))).thenReturn(requestSpec);
@@ -83,6 +84,7 @@ class NotificationClientTest {
         notificationClient.streamAnswer(userId, requestId, tokens);
 
         // Then
+        verify(rSocketRequesterBuilder).rsocketConnector(any());
         verify(rSocketRequesterBuilder).tcp("notification-service", 7000);
         verify(rSocketRequester).route("search.result");
         verify(requestSpec).metadata(metadataCaptor.capture(), mimeTypeCaptor.capture());
@@ -98,12 +100,53 @@ class NotificationClientTest {
     }
 
     @Test
+    void shouldReuseRequesterAcrossMultipleCalls() throws Exception {
+        // Given
+        String userId1 = "user-123";
+        String requestId1 = "req-456";
+        String userId2 = "user-789";
+        String requestId2 = "req-012";
+        Flux<String> tokens1 = Flux.just("token1", "token2");
+        Flux<String> tokens2 = Flux.just("token3", "token4");
+        String metadataJson1 = "{\"userId\":\"user-123\",\"requestId\":\"req-456\"}";
+        String metadataJson2 = "{\"userId\":\"user-789\",\"requestId\":\"req-012\"}";
+
+        RSocketRequester.RequestSpec requestSpec = mock(RSocketRequester.RequestSpec.class);
+        RSocketRequester.RetrieveSpec retrieveSpec = mock(RSocketRequester.RetrieveSpec.class);
+
+        when(rSocketRequesterBuilder.rsocketConnector(any())).thenReturn(rSocketRequesterBuilder);
+        when(rSocketRequesterBuilder.tcp("notification-service", 7000)).thenReturn(rSocketRequester);
+        when(rSocketRequester.route("search.result")).thenReturn(requestSpec);
+        when(requestSpec.metadata(any(String.class), any(MimeType.class))).thenReturn(requestSpec);
+        when(requestSpec.data(any(Flux.class))).thenReturn(retrieveSpec);
+        when(retrieveSpec.retrieveFlux(Void.class)).thenReturn(Flux.empty());
+
+        when(objectMapper.writeValueAsString(Map.of("userId", userId1, "requestId", requestId1)))
+                .thenReturn(metadataJson1);
+        when(objectMapper.writeValueAsString(Map.of("userId", userId2, "requestId", requestId2)))
+                .thenReturn(metadataJson2);
+
+        // When — call streamAnswer twice
+        notificationClient.streamAnswer(userId1, requestId1, tokens1);
+        notificationClient.streamAnswer(userId2, requestId2, tokens2);
+
+        // Then — tcp() should only be called once (requester is reused)
+        verify(rSocketRequesterBuilder, times(1)).rsocketConnector(any());
+        verify(rSocketRequesterBuilder, times(1)).tcp("notification-service", 7000);
+        verify(rSocketRequester, times(2)).route("search.result");
+        verify(requestSpec, times(2)).metadata(any(String.class), any(MimeType.class));
+        verify(requestSpec, times(2)).data(any(Flux.class));
+        verify(retrieveSpec, times(2)).retrieveFlux(Void.class);
+    }
+
+    @Test
     void shouldHandleJsonSerializationError() throws Exception {
         // Given
         String userId = "user-123";
         String requestId = "req-456";
         Flux<String> tokens = Flux.just("token1");
 
+        when(rSocketRequesterBuilder.rsocketConnector(any())).thenReturn(rSocketRequesterBuilder);
         when(objectMapper.writeValueAsString(Map.of("userId", userId, "requestId", requestId)))
                 .thenThrow(new RuntimeException("Serialization error"));
 
@@ -114,8 +157,8 @@ class NotificationClientTest {
         );
 
         assertThat(thrown).isNotNull();
-        // Note: rSocketRequesterBuilder.tcp() is called before serialization error,
-        // so it will be invoked even if serialization fails
+        // Note: getOrCreateRequester() calls rsocketConnector() and tcp() before serialization,
+        // so they will be invoked even if serialization fails
     }
 
     @Test
@@ -129,6 +172,7 @@ class NotificationClientTest {
         RSocketRequester.RequestSpec requestSpec = mock(RSocketRequester.RequestSpec.class);
         RSocketRequester.RetrieveSpec retrieveSpec = mock(RSocketRequester.RetrieveSpec.class);
 
+        when(rSocketRequesterBuilder.rsocketConnector(any())).thenReturn(rSocketRequesterBuilder);
         when(rSocketRequesterBuilder.tcp("notification-service", 7000)).thenReturn(rSocketRequester);
         when(rSocketRequester.route("search.result")).thenReturn(requestSpec);
         when(requestSpec.metadata(any(String.class), any(MimeType.class))).thenReturn(requestSpec);
@@ -142,6 +186,7 @@ class NotificationClientTest {
         notificationClient.streamAnswer(userId, requestId, tokens);
 
         // Then - should not throw, just log error
+        verify(rSocketRequesterBuilder).rsocketConnector(any());
         verify(rSocketRequesterBuilder).tcp("notification-service", 7000);
         verify(rSocketRequester).route("search.result");
     }

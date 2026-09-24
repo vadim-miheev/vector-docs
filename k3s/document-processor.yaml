@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-processor
+  namespace: vector-docs
+  labels:
+    app: document-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-processor
+  template:
+    metadata:
+      labels:
+        app: document-processor
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: x99 #node with ollama
+      containers:
+        - name: document-processor
+          image: vadimmiheev/vector-docs-document-processor:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vector-docs-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: POSTGRES_PORT
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)"
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: EMBEDDING_BASE_URL
+              value: "http://$(HOST_IP):11434/v1"
+            - name: EMBEDDING_MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: EMBEDDING_MODEL_NAME
+            - name: EMBEDDING_CHUNK_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: EMBEDDING_CHUNK_SIZE
+            - name: EMBEDDING_CHUNK_OVERLAP
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: EMBEDDING_CHUNK_OVERLAP
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: TESSDATA_PREFIX
+              value: "/usr/share/tesseract-ocr/5/tessdata"
+            - name: TESSDATA_LANG
+              valueFrom:
+                configMapKeyRef:
+                  name: vector-docs-config
+                  key: TESSDATA_LANG
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-processor
+  namespace: vector-docs
+  labels:
+    app: document-processor
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: document-processor

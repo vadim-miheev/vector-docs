@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vector-docs
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - postgres.yaml
+  - zookeeper.yaml
+  - kafka.yaml
+  - storage-service.yaml
+  - document-processor.yaml
+  - search-service.yaml
+  - answer-generator.yaml
+  - notification-service.yaml
+  - gateway.yaml
+  - frontend.yaml
+
+# Deploy order: infrastructure → services → gateway
+# (kubectl apply applies all, but init containers handle waits)
