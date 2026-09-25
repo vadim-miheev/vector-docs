@@ -22,4 +22,4 @@ jobs:
 
       - name: Pull latest code on server and rebuild
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/dev/pet/vector-docs && git pull && make prod-start"
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/dev/pet/vector-docs && git pull && make k3s-deploy-all"
